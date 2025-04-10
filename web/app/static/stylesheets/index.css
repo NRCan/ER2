@@ -1,0 +1,18 @@
+/* body {
+  font-family: 'Fira Sans', serif !important;
+} */
+
+body::after {
+  content: "";
+  background: url("../images/index-background.png");
+  opacity: 0.4;
+  background-repeat: no-repeat;
+  background-position-y: 0px;
+  background-position-x: center;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  position: absolute;
+  z-index: -1;
+}

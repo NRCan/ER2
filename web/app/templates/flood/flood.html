@@ -1,0 +1,21 @@
+<!-- {% extends "base.html" %} {% block app_content %}
+<div id="map" class="map" , lang="{{ lang }}" , module="{{ module }}"></div>
+{% endblock %} {% block styles %}
+{{ super() }}
+{% include 'risk-common/css-files.html' %} {% endblock %} {% block
+right_nav_content %}
+<li class="nav-item">
+  <button
+    class="btn btn-dark"
+    data-toggle="tooltip"
+    data-placement="top"
+    title="Info"
+    id="ER2"
+  >
+    <i class="fas fa-info-circle fa-lg"></i>
+  </button>
+</li>
+{% endblock %} {% block nav_content %} {% include 'risk-common/risk-navbar.html'
+%} {% endblock %} {% block scripts %}
+{{ super() }}
+{% include 'js-dependencies.html' %} {% endblock %} -->

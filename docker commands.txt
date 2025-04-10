@@ -1,0 +1,34 @@
+web:
+image: er2_web
+ports: ["<host-port>:<host-port>"]
+volumes: ['./web/app:/home/er2/app', './web/er2.sqlite:/home/er2/er2.sqlite']
+env_file:
+- dev.env
+
+cd web
+docker run -p <host-port>:<host-port> --rm --env-file ../dev.env -v C:/er2-flood-backend/er2/web/er2.sqlite  --name er2_web er2_web
+
+api:
+image: er2_api
+ports:
+    - "<host-port>:<host-port>"
+env_file:
+    - dev.env
+
+cd api
+docker run -p <host-port>:<host-port> --rm --env-file ../dev.env --name er2_api er2_api
+
+
+worker:
+image: er2_worker
+env_file:
+    - dev.env
+
+cd celery-queue
+docker run -p <host-port>:<host-port> --rm --env-file ../dev.env --name er2_worker er2_worker
+
+
+redis:
+image: redis
+
+docker run --rm -p <host-port>:<host-port> redis

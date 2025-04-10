@@ -1,0 +1,51 @@
+{% extends "base.html" %} {% block styles %}
+{{ super() }}
+<link
+  href="{{url_for('static', filename='stylesheets/index.css')}}"
+  rel="stylesheet"
+/>
+{% endblock %} {% block app_content %}
+
+<h1 class="text-center mt-5">{{ _("ER2") }}</h1>
+
+<h5 class="text-center">{{ _("Rapid Risk Evaluator") }}</h5>
+<h5 class="text-center mb-5">
+  {{ _("A Centralized Canadian Platform for Risk Simulations") }}
+</h5>
+<h3 class="text-center">{{ _("Select Hazard") }}</h3>
+<div style="text-align:center;">
+  <div class="btn-group" role="group" aria-label="Basic example"></div>
+  <a
+    type="button"
+    href="{{ url_for(_('main.flood')) }}"
+    class="btn btn-primary btn-lg"
+    >{{ _("Floods") }}</a
+  >
+  <a
+    type="button"
+    href="{{ url_for(_('main.earthquake')) }}"
+    class="btn btn-primary btn-lg"
+  >
+    {{ _("Earthquakes") }}
+  </a>
+  <a
+    type="button"
+    class="btn btn-primary btn-lg"
+    id="wildfire_button"
+    href="http://www.firegrowthmodel.ca/index.php"
+    data-toggle="tooltip"
+    target="_blank"
+  >
+    {{ _("Wildfires") }}
+  </a>
+</div>
+{% endblock %} {% block scripts %}
+{{ super() }}
+<script>
+  $("#wildfire_button").click(function() {
+    alert("The wildfire module is currently under development. You will be navigated to the homepage for the Prometheus fire growth model, which ER2 Wildfire is based on.")
+
+});
+
+</script>
+{% endblock %}

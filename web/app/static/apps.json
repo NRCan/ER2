@@ -1,0 +1,211 @@
+
+{"type":"apps","apps":[{
+	"type": "conf",
+	"name": [
+		{
+			"lang": "fr",
+			"text": "flood"
+		},
+		{
+			"lang": "en",
+			"text": "flood"
+		}
+	],
+	"mapView": {
+		"long": "-75.649313",
+		"lat": "45.472082",
+		"zoom": "12"
+	},
+	"baseLayers": [
+		{
+			"legend_name": "Flood Extent",
+			"id": "gat_flood_extent",
+			"serverType": "mapserver",
+			"service": "MAPSERV",
+			"opacity": "0.5",
+			"zIndex": 2,
+			"makeVis": "onClick",
+			"ratio": "1",
+			"params": {
+				"LAYERS": "HAND_gatineau",
+				"MAP":"/map/er2/flood.map"
+			},
+			"crossOrigin": "anonymous"
+		},
+		{
+			"legend_name": "Gatineau Historical Flood",
+			"id": "gatineau_historical_flood",
+			"serverType": "mapserver",
+			"service": "https://webservices.maps.canada.ca/arcgis/services/NRCan/EGS_Flood_Product_Archive_fr/MapServer/WMSServer?",
+			"opacity": "0.3",
+			"zIndex": 3,
+			"makeVis": true,
+			"ratio": "1",
+			"params": {
+				"LAYERS": 0,
+				"STYLES": "default",
+				"layerDefs": "{\"1\":\"(date_utc > timestamp '2017-05-08') AND (date_utc < timestamp '2017-05-09')\"}",
+				"BGCOLOR": "0xFEFFFF"
+			},
+			"crossOrigin": "anonymous"
+		},
+		{
+			"legend_name": {
+				"en": "Gatineau Region",
+				"fr": "Région de Gatineau"
+			},
+			"id": "gat_blocks",
+			"opacity": "1",
+			"zIndex": 5,
+			"makeVis": true,
+			"service": "MAPSERV",
+			"ratio": "1",
+			"type": "image",
+			"params": {
+				"LAYERS": "gat_blocks",
+				"MAP":"/map/er2/flood.map"
+			},
+			"serverType": "mapserver",
+			"crossOrigin": "anonymous",
+			"additional_info": {
+				"getFeatureInfoOnClick": false
+			}
+		}
+	],
+	"form": [
+		[
+			"Lieu: ",
+			"Profondeur de l'eau:"
+		],
+		[
+			"Location: ",
+			"Water depth (m):"
+		]
+	],
+	"simComplete": [
+		{
+			"body": "<p>La perte économique totale est actuellement affichée. Appuyez sur la <i class='far fa-map'></i> icône pour afficher d'autres résultats de simulation et le rapport statistique.</p>"
+		},
+		{
+			"body": "<p>Total damage is currently displayed. Press the <i class='far fa-map'></i> icon to view other simulation results.</p>"
+		}
+	]
+},{
+	"type": "conf",
+	"name": [
+		{
+			"lang": "fr",
+			"text": "seismic"
+		},
+		{
+			"lang": "en",
+			"text": "seismic"
+		}
+	],
+	"mapView": {
+		"long": "-69",
+		"lat": "48.5",
+		"zoom": "6"
+	},
+	"baseLayers": [
+		{
+			"legend_name": {
+				"en": "Census Tracts",
+				"fr": "Secteurs de recensement"
+			},
+			"id": "hz_tract",
+			"opacity": "1",
+			"zIndex": 5,
+			"makeVis": true,
+			"service": "MAPSERV",
+			"ratio": "1",
+			"type": "image",
+			"params": {
+				"LAYERS": "hz_tract",
+				"MAP":"/map/er2/eq.map"
+			},
+			"serverType": "mapserver",
+			"crossOrigin": "anonymous",
+			"additional_info": {
+				"getFeatureInfoOnClick": false
+			}
+		},
+		{
+			"legend_name": {
+				"en": "Seismic Regions",
+				"fr": "Régions sismiques"
+			},
+			"id": "eq_regions",
+			"zIndex": 5,
+			"makeVis": true,
+			"service": "MAPSERV",
+			"ratio": "1",
+			"params": {
+				"LAYERS": "secan_r2",
+				"MAP":"/map/er2/eq.map"
+			},
+			"serverType": "mapserver",
+			"crossOrigin": "anonymous",
+			"type": "image",
+			"additional_info": {
+				"getFeatureInfoOnClick": true
+			}
+		},
+		{
+			"legend_name": {
+				"en": "Historical earthquake magnitude",
+				"fr": "Ampleur historique du tremblement de terre"
+			},
+			"id": "hist_eq",
+			"zIndex": 5,
+			"makeVis": true,
+			"service": "MAPSERV",
+			"ratio": "1",
+			"params": {
+				"LAYERS": "historical_earthquakes",
+				"MAP":"/map/er2/eq.map"
+			},
+			"serverType": "mapserver",
+			"crossOrigin": "anonymous",
+			"type": "image",
+			"additional_info": {
+				"getFeatureInfoOnClick": true
+			}
+		}
+	],
+	"modals": [
+		{
+			"close": "Fermer",
+			"run": "Exécuter",
+			"cancel": "Annuler",
+			"NEWSIM": "Nouvelle Simulation",
+			"SIMCOMP": "Simulation Terminée"
+		},
+		{
+			"close": "Close",
+			"run": "Run",
+			"cancel": "Cancel",
+			"NEWSIM": "New Simulation",
+			"SIMCOMP": "Simulation Complete",
+			"Stats": "Block "
+		}
+	],
+	"form": [
+		[
+			"Magnitude:",
+			"Profondeur (km):"
+		],
+		[
+			"Magnitude:",
+			"Depth (km):"
+		]
+	],
+	"simComplete": [
+		{
+			"body": "<p>La perte économique totale est actuellement affichée. Appuyez sur la <i class='far fa-map'></i> icône pour afficher d'autres résultats de simulation et le rapport statistique.</p>"
+		},
+		{
+			"body": "<p id='simComp'>Total economic loss is currently displayed. Press the <i class='far fa-map'></i> icon to view other simulation results and <a target='_blank' href='#' id='reportLink'>the statistics report</a>.</p>"
+		}
+	]
+}]}

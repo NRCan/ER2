@@ -1,0 +1,96 @@
+{% extends 'bootstrap/base.html' %}
+
+{% block title %} {% if title %}{{
+  title
+}}{% else %}{{ _("ER2") }}{% endif %}
+{% endblock %}
+
+<!-- <link rel="shortcut icon" type="image/png" href="../../static/images/gsc.png"/> -->
+{% block head %}
+{{ super() }}
+<link
+  rel="shortcut icon"
+  href="{{ url_for('static', filename='favicon.ico') }}"
+/>
+{% endblock %}
+
+{% block content %}
+<div class="modal" id="myModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h4 class="modal-title">
+          <!-- Modal Heading -->
+        </h4>
+        <button type="button" class="close" data-dismiss="modal">
+          &times;
+        </button>
+      </div>
+
+      <!-- Modal body -->
+      <div class="modal-body">
+        <!-- Modal body.. -->
+      </div>
+
+      <!-- Modal footer -->
+      <div class="modal-footer">
+          <div class="container col-md-12 modal-footer-container">
+          </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<nav class="navbar navbar-expand fixed-bottom navbar-dark bg-dark">
+  <a
+    class="navbar-brand "
+    title="{{ _('Homepage') }}"
+    href="{{ url_for('main.index') }}"
+    >ER2</a
+  >
+
+  <ul class="navbar-nav mx-auto">
+    {% block nav_content %}{% endblock %}
+  </ul>
+  <ul class="navbar-nav">
+    {% block right_nav_content %}{% endblock %}
+    {% if session["user_id"] %}
+
+    <li class="nav-item">
+      <a href="{{ url_for('main.logout') }}"
+        ><button title="{{ _('Logout user') }} {{ session["username"] }}" data-toggle="tooltip" data-placement="top" type="button" class="btn btn-dark">
+
+          <i class="fas fa-sign-out-alt"></i></button
+      ></a>
+    </li>
+    {% else %}
+
+    <li class="nav-item">
+        <a href="{{ url_for('main.login') }}"
+          ><button title="Login" data-toggle="tooltip" data-placement="top" type="button" class="btn btn-dark">
+            <i class="fas fa-sign-in-alt"></i></button
+        ></a>
+      </li>
+
+    {% endif %}
+    <li class="nav-item">
+      <a href="{{ url_for('main.set_language') }}"
+        ><button type="button" class="btn btn-dark">{{ _("FR") }}</button></a
+      >
+    </li>
+  </ul>
+</nav>
+{# application content needs to be provided in the app_content block #}
+{% block app_content %}
+{% endblock %}
+
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  $("[rel='tooltip']").tooltip();
+</script>
+{% endblock %}

@@ -1,0 +1,234 @@
+# French translations for PROJECT.
+# Copyright (C) 2019 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2020-02-05 16:52-0500\n"
+"PO-Revision-Date: 2019-08-22 10:03-0400\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: app.py:236
+msgid "Economic Loss"
+msgstr "Perte économique"
+
+#: app.py:248
+msgid "Fatal 2 AM"
+msgstr "Fatal 2 AM"
+
+#: app.py:260
+msgid "Fatal 2 PM"
+msgstr "Fatal 2 PM"
+
+#: app.py:272
+msgid "Fatal 5 PM"
+msgstr "Fatal 5 PM"
+
+#: app.py:284
+msgid "Injuries 2 AM"
+msgstr "Blessures 2 AM"
+
+#: app.py:296
+msgid "Injuries 2 PM"
+msgstr "Blessures 2 PM"
+
+#: app.py:308
+msgid "Injuries 5 PM"
+msgstr "Blessures 5 PM"
+
+#: app.py:320
+msgid "PGA"
+msgstr "PGA"
+
+#: app.py:332 app.py:474
+msgid "Sa @ 0.3 s"
+msgstr "Sa @ 0,3 s"
+
+#: app.py:344 app.py:473
+msgid "Sa @ 1.0 s"
+msgstr "Sa @ 1,0 s"
+
+#: app.py:356
+msgid "Soil type"
+msgstr "Type de sol"
+
+#: app.py:452
+msgid "People indoors 2 AM"
+msgstr "Personnes à l'intérieur 2 AM"
+
+#: app.py:453
+msgid "Life-threatening injuries 2 AM"
+msgstr "Blessures mettant la vie en danger 2h"
+
+#: app.py:454
+msgid "People hospitalized 2 AM"
+msgstr "Personnes hospitalisées 2h"
+
+#: app.py:455
+msgid "People requiring medical attention 2 AM"
+msgstr "Personnes nécessitant des soins médicaux 2h"
+
+#: app.py:456
+msgid "Fatalities 2 AM"
+msgstr "Morts 2h"
+
+#: app.py:457
+msgid "People indoors 2 PM"
+msgstr "Personnes à l'intérieur 14h"
+
+#: app.py:458
+msgid "People requiring medical attention 2 PM"
+msgstr "Personnes nécessitant des soins médicaux 14h"
+
+#: app.py:459
+msgid "People hospitalized 2 PM"
+msgstr "Personnes hospitalisées 14h"
+
+#: app.py:460
+msgid "Life-threatening injuries 2 PM"
+msgstr "Blessures mettant la vie en danger 14h"
+
+#: app.py:461
+msgid "Fatalities 2 PM"
+msgstr "Morts 14h"
+
+#: app.py:462
+msgid "People indoors 5 PM"
+msgstr "Personnes à l'intérieur 17h"
+
+#: app.py:463
+msgid "People requiring medical attention 5 PM"
+msgstr "Personnes nécessitant des soins médicaux 17h"
+
+#: app.py:464
+msgid "People hospitalized 5 PM"
+msgstr "Personnes hospitalisées 17h"
+
+#: app.py:465
+msgid "Life-threatening injuries 5 PM"
+msgstr "Blessures mettant la vie en danger 17h"
+
+#: app.py:466
+msgid "Fatalities 5 PM"
+msgstr "Morts 17h"
+
+#: app.py:467
+msgid "Peak ground acceleration"
+msgstr "Accélération maximale du sol"
+
+#: app.py:468
+msgid "Normalized economic loss"
+msgstr "Perte économique normalisée"
+
+#: app.py:469
+msgid "Earthquake loss ratio"
+msgstr "Ratio des pertes"
+
+#: app.py:470
+msgid "Total economic loss"
+msgstr "Perte économique totale"
+
+#: app.py:471
+msgid "Exposure"
+msgstr "Exposition"
+
+#: app.py:472
+msgid "Soil class"
+msgstr "Classe de sol"
+
+#: app.py:475 app.py:511
+msgid "Buildings"
+msgstr "Bâtiments"
+
+#: app.py:476
+msgid "Undamaged buildings"
+msgstr "Bâtiments intacts"
+
+#: app.py:477
+msgid "Slightly damaged buildings"
+msgstr "Bâtiments légèrement endommagés"
+
+#: app.py:478
+msgid "Moderately damaged buildings"
+msgstr "Bâtiments modérément endommagés"
+
+#: app.py:479
+msgid "Extensively damaged buildings"
+msgstr "Bâtiments modérément endommagés"
+
+#: app.py:480
+msgid "Completely destroyed buildings"
+msgstr "Bâtiments complètement détruits"
+
+#: app.py:484
+msgid "Structural exposure"
+msgstr "Exposition structurelle"
+
+#: app.py:485
+msgid "Structural damage"
+msgstr "Dommages structuraux"
+
+#: app.py:486
+msgid "Content damage"
+msgstr "Dommages au contenu"
+
+#: app.py:487
+msgid "Total damage"
+msgstr "Total des dommages"
+
+#: app.py:488
+msgid "Building count"
+msgstr "Nombre de bâtiments"
+
+#: app.py:489
+msgid "Buildings affected"
+msgstr "Bâtiments concernés"
+
+#: app.py:490
+msgid "Population"
+msgstr "Population"
+
+#: app.py:491
+msgid "Affected population"
+msgstr "Population touchée"
+
+#: app.py:509
+msgid "Ground Motion Intensity"
+msgstr "Intensité du mouvement du sol"
+
+#: app.py:510 app.py:516
+msgid "Economic"
+msgstr "Économique"
+
+#: app.py:512
+msgid "Injuries and Fatalities - 2 AM"
+msgstr "Blessures et décès - 2h"
+
+#: app.py:513
+msgid "Injuries and Fatalities - 2 PM"
+msgstr "Blessures et décès - 14h"
+
+#: app.py:514
+msgid "Injuries and Fatalities - 5 PM"
+msgstr "Blessures et décès - 17h"
+
+#: app.py:515
+msgid "Population and Buildings"
+msgstr "Population et bâtiments"
+
+#~ msgid "test"
+#~ msgstr "FRENCH"
+
+#~ msgid "Total exposure"
+#~ msgstr "Exposition totale"
+

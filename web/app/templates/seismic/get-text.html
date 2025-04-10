@@ -1,0 +1,15 @@
+{% extends "risk-common/welcome-modal-base.html" %}
+{% block instructions %}
+
+<p>{{ _("Click a location on the map to simulate an earthquake. You will be prompted to specify the earthquake magnitude and depth. The simulation may take a few minutes to complete.") }}</p>
+
+<p>{{ _("After the simulation has completed, press the <i class=\"far fa-map\"></i> icon to change map layers and download the simulation statistics report. To view statistics for an individual census tract, toggle modes by pressing the <i class=\"fas fa-crosshairs\"></i> icon, or select <i>view census tract statistics</i> from the context menu.") }}</p>
+
+<p>{{ _("<b>Note:</b> Currently ER2 Earthquake is only available in Ontario and Quebec.") }}</p>
+
+
+{% endblock %}
+
+{% block feedback %}
+<iframe src="" width="640" height="300" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
+{% endblock %}

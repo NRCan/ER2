@@ -1,0 +1,590 @@
+# French translations for PROJECT.
+# Copyright (C) 2019 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2019-12-19 16:06-0500\n"
+"PO-Revision-Date: 2019-05-02 10:24-0400\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: app/forms.py:8 app/forms.py:18
+msgid "Username"
+msgstr "Nom d'utilisateur"
+
+#: app/forms.py:9 app/forms.py:20
+msgid "Password"
+msgstr "Mot de passe"
+
+#: app/forms.py:10
+msgid "Login"
+msgstr "Connexion"
+
+#: app/forms.py:14
+msgid "Incorrect security key!"
+msgstr "Clé de sécurité incorrecte !"
+
+#: app/forms.py:19
+msgid "Admin"
+msgstr "Admin"
+
+#: app/forms.py:21
+msgid "Security Key"
+msgstr "Clé de sécurité"
+
+#: app/auth/routes.py:76
+msgid "ER2 Login"
+msgstr "ER2 Connexion"
+
+#: app/auth/routes.py:145
+msgid "Register ER2 User"
+msgstr "Enregistrer un utilisateur ER2"
+
+#: app/templates/base.html:5 app/templates/index.html:9
+msgid "ER2"
+msgstr "ER2"
+
+#: app/templates/base.html:48
+msgid "Homepage"
+msgstr "Page d'accueil"
+
+#: app/templates/base.html:62
+msgid "Logout user"
+msgstr "Déconnexion de l'utilisateur"
+
+#: app/templates/base.html:79
+msgid "FR"
+msgstr "EN"
+
+#: app/templates/index.html:11
+msgid "Rapid Risk Evaluator"
+msgstr "Évaluateur rapide des risques"
+
+#: app/templates/index.html:13
+msgid "A Centralized Canadian Platform for Risk Simulations"
+msgstr "Une plateforme canadienne centralisée pour la simulation du risque"
+
+#: app/templates/index.html:15
+msgid "Select Hazard"
+msgstr "Sélectionnez un risque"
+
+#: app/templates/index.html:20
+msgid "main.flood"
+msgstr "main.inondation"
+
+#: app/templates/index.html:22
+msgid "Floods"
+msgstr "Inondations"
+
+#: app/templates/index.html:26
+msgid "main.earthquake"
+msgstr "main.seisme"
+
+#: app/templates/index.html:29
+msgid "Earthquakes"
+msgstr "Séisme"
+
+#: app/templates/index.html:39
+msgid "Wildfires"
+msgstr "Feux de forêt"
+
+#: app/templates/risk.html:14
+msgid "Info"
+msgstr "Info"
+
+#: app/templates/risk.html:42
+msgid "Seismic"
+msgstr "Séisme"
+
+#: app/templates/risk.html:43
+msgid "Wildfire"
+msgstr "Feux de forêt"
+
+#: app/templates/risk.html:44
+msgid "Flood"
+msgstr "Inondation"
+
+#: app/templates/risk.html:503 app/templates/risk.html:1720
+msgid "New simulation"
+msgstr "Nouvelle simulation"
+
+#: app/templates/risk.html:678 app/templates/risk.html:1308
+#: app/templates/risk.html:1644
+msgid "Close"
+msgstr "Fermer"
+
+#: app/templates/risk.html:807
+msgid "NEW SIMULATION"
+msgstr "NOUVELLE SIMULATION"
+
+#: app/templates/risk.html:809 app/templates/risk.html:811
+msgid "Cancel"
+msgstr "Annuler"
+
+#: app/templates/risk.html:816
+msgid "Run"
+msgstr "Exécuter"
+
+#: app/templates/risk.html:989 app/templates/risk.html:1025
+msgid "Determining affected blocks"
+msgstr "Détermination des blocs affectés"
+
+#: app/templates/risk.html:1046
+msgid "Processing block "
+msgstr "Traitement bloc "
+
+#: app/templates/risk.html:1046
+msgid " of"
+msgstr " de"
+
+#: app/templates/risk.html:1066
+msgid "Simulation completed in"
+msgstr "Simulation terminée en"
+
+#: app/templates/risk.html:1303
+msgid "Simulation Complete"
+msgstr "Simulation Terminée"
+
+#: app/templates/risk.html:1725
+msgid "Current simulation statistics"
+msgstr "Statistiques de simulation actuelles"
+
+#: app/templates/risk.html:1730
+msgid "Census tract statistics"
+msgstr "Statistiques sur les secteurs de recensement"
+
+#: app/templates/errors/401.html:4
+msgid "Please contact an administator to do this."
+msgstr "Veuillez contacter un administrateur pour ce faire."
+
+#: app/templates/errors/401.html:5 app/templates/errors/404.html:5
+msgid "Back"
+msgstr "Retour"
+
+#: app/templates/errors/404.html:4
+msgid "An unexpected error has occurred"
+msgstr "Une erreur inattendue s'est produite"
+
+#: app/templates/flood/get-text.html:3
+msgid ""
+"Click a location within the study region. Enter a value to modify the "
+"water level relative to this clicked location."
+msgstr ""
+"Cliquez sur un lieu dans la région d'étude. Entrez une valeur pour "
+"modifier le niveau d'eau par rapport à l'endroit cliqué."
+
+#: app/templates/flood/welcome.html:4
+msgid "To adjust the water level, click on the map and adjust the slider"
+msgstr "Pour régler le niveau d'eau, cliquez sur la carte et réglez le curseur."
+
+#: app/templates/risk-common/risk-navbar.html:2
+msgid "Change layer"
+msgstr "Changer de couche"
+
+#: app/templates/risk-common/risk-navbar.html:25
+msgid "Toggle action"
+msgstr "Basculer l'action"
+
+#: app/templates/risk-common/risk-navbar.html:31
+msgid "Set epicentre"
+msgstr "Définir l'épicentre"
+
+#: app/templates/risk-common/risk-navbar.html:32
+msgid "Query census tract"
+msgstr "Voir le secteur de recensement"
+
+#: app/templates/risk-common/welcome-modal-base.html:8
+msgid "About"
+msgstr "A propos de"
+
+#: app/templates/risk-common/welcome-modal-base.html:15
+msgid ""
+"The Rapid Risk Evaluation Tool (ER2) is designed for natural disaster "
+"mitigation response and planning. Members of the public safety community "
+"may use this tool to obtain estimates of the damage associated with "
+"natural hazards (earthquakes and floods), including economic and social "
+"losses."
+msgstr ""
+"L'outil d'évaluation rapide des risques (ER2) est conçu pour la "
+"planification et l'intervention en cas de catastrophe naturelle. Les "
+"membres de la communauté de la sécurité publique peuvent utiliser cet "
+"outil pour obtenir des estimations des dommages associés aux aléas "
+"naturels (tremblements de terre et inondations), y compris les pertes "
+"économiques et sociales."
+
+#: app/templates/risk-common/welcome-modal-base.html:26
+msgid "Instructions"
+msgstr "Mode d'emploi"
+
+#: app/templates/risk-common/welcome-modal-base.html:43
+msgid "Feedback"
+msgstr "Commentaire"
+
+#: app/templates/risk-common/welcome-modal-base.html:62
+msgid "Disclaimer"
+msgstr "Clause de non-responsabilité"
+
+#: app/templates/risk-common/welcome-modal-base.html:68
+msgid ""
+"No warranty is made concerning the data or results used or generated by "
+"the tool. The results are intended for use in emergency planning and the "
+"individuals and agencies associated with the development of this tool "
+"assume no liability for their use. Actual effects from natural hazards "
+"may vary significantly from what is depicted by the tool."
+msgstr ""
+"Aucune garantie n'est donnée concernant les données ou les résultats "
+"utilisés ou générés par l'outil. Les résultats sont destinés à la "
+"planification des mesures d'urgence et les personnes et organismes "
+"associés à l'élaboration de cet outil n'assument aucune responsabilité "
+"quant à leur utilisation. Les effets réels des aléas naturels peuvent "
+"différer considérablement de ce qui est décrit dans l'outil.\""
+
+#: app/templates/risk-common/welcome-modal-base.html:78
+msgid "Credits"
+msgstr "Crédits"
+
+#: app/templates/risk-common/welcome-modal-base.html:84
+msgid ""
+"ER2 development is led by the Geological Survey of Canada in Quebec, QC. "
+"Historical earthquakes were obtained from the Earthquakes Canada "
+"database. The flood module was developed with assistance from the "
+"Canadian Centre for Mapping and Earth Observation."
+msgstr ""
+"Le développement d'ER2 est mené par la Commission géologique du Canada à "
+"Québec, QC. Les tremblements de terre historiques ont été obtenus de la "
+"base de données de Séismes Canada. Le module sur les inondations a été "
+"développé avec l'aide du Centre canadien de cartographie et d'observation"
+" de la Terre."
+
+#: app/templates/seismic/form.html:22
+msgid "User-Defined Scenario"
+msgstr "Scénario Défini Par L'utilisateur"
+
+#: app/templates/seismic/form.html:23
+msgid "Probabilistic Scenario"
+msgstr "Scénario Probabiliste"
+
+#: app/templates/seismic/form.html:24
+msgid "Probabilistic Province"
+msgstr "Province probabiliste"
+
+#: app/templates/seismic/form.html:35
+msgid "Coordinates (X, Y)"
+msgstr "Coordonnées (X, Y)"
+
+#: app/templates/seismic/form.html:111
+msgid "Seismic Zone"
+msgstr "Zone sismique"
+
+#: app/templates/seismic/form.html:115
+msgid "Nearest Historical Earthquake"
+msgstr "Séisme historique le plus proche"
+
+#: app/templates/seismic/form.html:116
+msgid "Date"
+msgstr "Date"
+
+#: app/templates/seismic/form.html:117
+msgid "Location"
+msgstr "Localisation"
+
+#: app/templates/seismic/form.html:118
+msgid "Magnitude"
+msgstr "Magnitude"
+
+#: app/templates/seismic/form.html:123 app/templates/seismic/form.html:132
+msgid "No historical earthquakes."
+msgstr "Pas de séismes historiques."
+
+#: app/templates/seismic/form.html:163
+msgid "Return period (years)"
+msgstr "Période de retour (années)"
+
+#: app/templates/seismic/get-text.html:4
+msgid ""
+"Click a location on the map to simulate an earthquake. You will be "
+"prompted to specify the earthquake magnitude and depth. The simulation "
+"may take a few minutes to complete."
+msgstr ""
+"Cliquez sur un lieu sur la carte pour simuler un tremblement de terre. "
+"Vous serez invité à spécifier la magnitude et la profondeur du "
+"tremblement de terre. La simulation peut prendre quelques minutes."
+
+#: app/templates/seismic/get-text.html:6
+msgid ""
+"After the simulation has completed, press the <i class=\"far fa-"
+"map\"></i> icon to change map layers and download the simulation "
+"statistics report. To view statistics for an individual census tract, "
+"toggle modes by pressing the <i class=\"fas fa-crosshairs\"></i> icon, or"
+" select <i>view census tract statistics</i> from the context menu."
+msgstr ""
+"Une fois la simulation terminée, cliquez sur la <i class=\"far fa-"
+"map\"></i> icône pour modifier les couches de la carte et télécharger le "
+"rapport des statistiques de simulation. Pour afficher les statistiques "
+"d'un secteur de recensement donné, appuyez sur la <i class=\"fas fa-"
+"crosshairs\"></i> icône pour basculer d'un mode à l'autre ou sélectionnez"
+" Afficher les statistiques du secteur de recensement dans le menu "
+"contextuel."
+
+#: app/templates/seismic/get-text.html:8
+msgid ""
+"<b>Note:</b> Currently ER2 Earthquake is only available in Ontario and "
+"Quebec."
+msgstr ""
+"<b>Note:</b> Actuellement, ER2 Séisme est seulement disponible en Ontario"
+" et au Québec."
+
+#~ msgid "Please log in to access this page."
+#~ msgstr "Veuillez vous connecter pour accéder à cette page."
+
+#~ msgid "Login"
+#~ msgstr "Connexion"
+
+#~ msgid "Please sign in before accessing ER2."
+#~ msgstr "Veuillez vous identifier avant d'accéder à ER2"
+
+#~ msgid "Welcome to ER2"
+#~ msgstr "Bienvenue à ER2"
+
+#~ msgid "Select hazard"
+#~ msgstr "Sélectionner le risque"
+
+#~ msgid "Earthquake"
+#~ msgstr "Séisme"
+
+#~ msgid "Flood"
+#~ msgstr "Inondation"
+
+#~ msgid "Wildfire"
+#~ msgstr "Incendie de forêt"
+
+#~ msgid "Wildfires"
+#~ msgstr "Feux de forêt (à venir!)"
+
+#~ msgid "Logout"
+#~ msgstr "Déconnexion"
+
+#~ msgid "ER2 Flood"
+#~ msgstr "ER2 Inondation"
+
+#~ msgid "Username"
+#~ msgstr "Nom d'utilisateur"
+
+#~ msgid "Password"
+#~ msgstr "Mot de passe"
+
+#~ msgid "Remember Me"
+#~ msgstr "Rester connecter"
+
+#~ msgid "Sign In"
+#~ msgstr "Connexion"
+
+#~ msgid "Wildfires (coming soon!)"
+#~ msgstr "Incendies de forêt (à venir!)"
+
+#~ msgid "ER2 Login"
+#~ msgstr "Connexion ER2"
+
+#~ msgid "To request access to ER2, contact <user>@<email.com>"
+#~ msgstr "Pour demander l'accès à ER2, veuillez contactez <user>@<email.com>"
+
+#~ msgid "Test message!!"
+#~ msgstr ""
+
+#~ msgid "Test message EN 2"
+#~ msgstr "dfasdfs"
+
+#~ msgid "form"
+#~ msgstr "this is in French"
+
+#~ msgid "User-Defined Scenario"
+#~ msgstr "Scénario Utilisateur"
+
+#~ msgid "Coordinates (X, Y)"
+#~ msgstr "Coordonnées (X, Y)"
+
+#~ msgid "Seismic Zone"
+#~ msgstr "Zone sismique"
+
+#~ msgid "Nearest Historical Earthquake"
+#~ msgstr "Séisme historique le plus proche"
+
+#~ msgid "Date"
+#~ msgstr "Date"
+
+#~ msgid "Location"
+#~ msgstr "Localisation"
+
+#~ msgid "Magnitude"
+#~ msgstr "Magnitude"
+
+#~ msgid "No historical earthquakes."
+#~ msgstr "Pas de séismes historiques."
+
+#~ msgid "Return period (years)"
+#~ msgstr "Période de retour (années)"
+
+#~ msgid "text goes here"
+#~ msgstr ""
+
+#~ msgid "New Simulation"
+#~ msgstr "Nouvelle simulation"
+
+#~ msgid ""
+#~ "Click a location on the map to "
+#~ "simulate an earthquake. You will be "
+#~ "prompted to specify the earthquake "
+#~ "magnitude and depth. The simulation may"
+#~ " take a few minutes to "
+#~ "complete.</p><p>After the simulation has "
+#~ "completed, press the <i class=\"far "
+#~ "fa-map\"></i> icon to change map "
+#~ "layers and download the simulation "
+#~ "statistics report. To view statistics "
+#~ "for an individual census tract, toggle"
+#~ " modes by pressing the <i class=\"fas"
+#~ " fa-crosshairs\"></i> icon, or select "
+#~ "\"view census tract statistics\" from "
+#~ "the context menu."
+#~ msgstr ""
+#~ "Cliquez sur un lieu sur la carte"
+#~ " pour simuler un tremblement de "
+#~ "terre. Vous serez invité à spécifier "
+#~ "la magnitude et la profondeur du "
+#~ "tremblement de terre. Une fois la "
+#~ "simulation terminée, appuyez sur l'icône "
+#~ "<i class=\\far fa-map\\far fa-map\\></i>"
+#~ " pour modifier les couches cartographiques"
+#~ " et télécharger le rapport de "
+#~ "statistiques de simulation. Pour afficher "
+#~ "les statistiques d'un secteur de "
+#~ "recensement donné, changez de mode en"
+#~ " appuyant sur l'icône <i class=\\fas "
+#~ "fa-crosshairs\\></i> ou sélectionnez \"view "
+#~ "census tract statistics\" dans le menu"
+#~ " contextuel."
+
+#~ msgid "THIS IS A TEST"
+#~ msgstr ""
+
+#~ msgid "Currently unavailable"
+#~ msgstr "Actuellement indisponible"
+
+#~ msgid "About"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "The Rapid Risk Evaluation Tool (ER2) "
+#~ "was developed by the Geological Survey"
+#~ " of Canada to enhance natural "
+#~ "disaster mitigation planning. Members of "
+#~ "the public safety community may use "
+#~ "this tool to obtain estimates of "
+#~ "the damage associated with natural "
+#~ "hazards (earthquakes and floods), including"
+#~ " economic and social losses."
+#~ msgstr ""
+#~ "L'Outil d'évaluation rapide des risques "
+#~ "(ER2) a été mis au point par "
+#~ "la Commission géologique du Canada pour"
+#~ " améliorer la planification de "
+#~ "l'atténuation des catastrophes naturelles. Les"
+#~ " membres de la communauté de la "
+#~ "sécurité publique peuvent utiliser cet "
+#~ "outil pour obtenir des estimations des"
+#~ " dommages associés aux aléas naturels "
+#~ "(tremblements de terre et inondations), "
+#~ "y compris les pertes économiques et "
+#~ "sociales."
+
+#~ msgid "Instructions"
+#~ msgstr ""
+
+#~ msgid "Disclaimer"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "No warranty is made concerning the "
+#~ "data or results used or generated "
+#~ "by the tool. The results are "
+#~ "intended for use in emergency planning"
+#~ " and the individuals and agencies "
+#~ "associated with the development of this"
+#~ " tool assume no liability for their"
+#~ " use. Actual effects from natural "
+#~ "hazards may vary significantly from what"
+#~ " is depicted by the tool."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "The Rapid Risk Evaluation Tool (ER2) "
+#~ "is designed for natural disaster "
+#~ "mitigation response and planning. Members "
+#~ "of the public safety community may "
+#~ "use this tool to obtain estimates "
+#~ "of the damage associated with natural"
+#~ " hazards (earthquakes and floods), "
+#~ "including economic and social losses."
+#~ msgstr ""
+
+#~ msgid "Please consider completing a feedback form."
+#~ msgstr ""
+
+#~ msgid "Credits"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "ER2 development is led by the "
+#~ "Geological Survey of Canada in Quebec,"
+#~ " QC. Historical earthquakes were obtained"
+#~ " from the Earthquakes Canada database. "
+#~ "The flood module was developed with "
+#~ "assistance from the Canadian Centre for"
+#~ " Mapping and Earth Observation."
+#~ msgstr ""
+
+#~ msgid "NICK TEST"
+#~ msgstr ""
+
+#~ msgid "Please consider completing the"
+#~ msgstr ""
+
+#~ msgid "Please consider completing the feedback form:"
+#~ msgstr "Veuillez remplir le formulaire de commentaires:"
+
+#~ msgid "link"
+#~ msgstr "lien"
+
+#~ msgid "test"
+#~ msgstr ""
+
+#~ msgid "main.feedback"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "The wildfire module is currently under"
+#~ " development. You will be navigated "
+#~ "to the homepage for the Prometheus "
+#~ "fire growth model, which ER2 Wildfire"
+#~ " is based on."
+#~ msgstr ""
+#~ "Le module sur les feux de forêt"
+#~ " est actuellement en cours de "
+#~ "développement. Vous accédez à la page"
+#~ " d'accueil du modèle de croissance du"
+#~ " feu Prometheus, sur lequel ER2 "
+#~ "Wildfire est basé."
+
+#~ msgid "Please consider completing the feedback form."
+#~ msgstr "Veuillez remplir le formulaire de rétroaction."
+

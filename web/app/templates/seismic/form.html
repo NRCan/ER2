@@ -1,0 +1,179 @@
+{# Magnitude and depth default to 7 and 0, respectively #}
+{% set historical_mag = 7.00 %}
+{% set historical_depth = 0 %}
+
+{# If historical earthquake is sent, form select boxes should default to the historical mag and depth values #}
+{% if form_data.historical_earthquake=="true" %}
+{% set historical_mag = form_data.mag_rounded %}
+{% set historical_depth = form_data.depth_rounded %}
+
+{# If the depth of the historical earthquake is 0, we state that it is unknown #}
+{% if form_data.depth == "0" %}
+{% set depth = "Depth: unknown" %}
+{% else %}
+{% set depth = "Depth: " + form_data.depth + " km" %}
+{% endif %}
+{% endif %}
+
+
+<form action="{{ config.ER2_API ~ "/eq/initiate" }}" id=formSim method="POST" enctype="application/x-www-form-urlencoded">
+    <div id="seismicOne" style="display:block">
+
+        <button type="button" id="deterministicBtn" style="margin-bottom: 2px" class="btn btn-outline-dark btn-block">{{ _("User-Defined Scenario") }}</button>
+        <button type="button" id="probabilisticBtn" class="btn btn-outline-dark btn-block">{{ _("Probabilistic Scenario") }}</button>
+        <button type="button" id="probabilisticProvBtn" class="btn btn-outline-dark disabled btn-block">{{ _("Probabilistic Province") }}</button>
+
+    </div>
+
+    <button type="button" class="btn btn-link btn-sm" id='form-back' style="display:none">
+        <!-- <i class="fas fa-long-arrow-alt-left"></i> -->
+        <i class="fas fa-angle-left"></i>
+    </button>
+
+    <div id="coordinatesForm" style="display:none">
+        <div class="form-group">
+            <label for="x">{{ _("Coordinates (X, Y)") }}</label>
+            <input name="x" class="form-control" id="x" placeholder="" value={{form_data.x}} />
+        </div>
+        <div class="form-group">
+            <!-- <label for="y">Y coordinate</label> -->
+            <input name="y" class="form-control" id="y" placeholder="" value={{form_data.y}} />
+        </div>
+    </div>
+
+    <div id="seismicTwo" style="display:none">
+
+        <!-- <key></key> ${x}&#176;, ${y}&#176 -->
+
+        <!-- <br>
+	<br> -->
+        <div class="form-group" id="mag-group">
+            <label for="mag">
+                <key></key>
+            </label>
+            <select name="m" class="form-control exp-coll exp-click" id="mag" size='0'  onblur="this.size=0;">
+                <option {% if historical_mag <4.25 %} selected="selected" {% endif %}>4.00</option>
+                <option {% if historical_mag==4.25 %} selected="selected" {% endif %}>4.25</option>
+                <option {% if historical_mag==4.5 %} selected="selected" {% endif %}>4.50</option>
+                <option {% if historical_mag==4.75 %} selected="selected" {% endif %}>4.75</option>
+                <option {% if form_data.seismic_zone=="true" %} display_under="{{form_data.risk_profile['5.00']}}" {% endif %} {% if historical_mag==5.0 %} selected="selected" {% endif %}>5.00</option>
+                <option {% if form_data.seismic_zone=="true" %} display_under="{{form_data.risk_profile['5.25']}}" {% endif %} {% if historical_mag==5.25 %} selected="selected" {% endif %}>5.25</option>
+                <option {% if form_data.seismic_zone=="true" %} display_under="{{form_data.risk_profile['5.50']}}" {% endif %} {% if historical_mag==5.5 %} selected="selected" {% endif %}>5.50</option>
+                <option {% if form_data.seismic_zone=="true" %} display_under="{{form_data.risk_profile['5.75']}}" {% endif %} {% if historical_mag==5.75 %} selected="selected" {% endif %}>5.75</option>
+                <option {% if form_data.seismic_zone=="true" %} display_under="{{form_data.risk_profile['6.00']}}" {% endif %} {% if historical_mag==6.0 %} selected="selected" {% endif %}>6.00</option>
+                <option {% if form_data.seismic_zone=="true" %} display_under="{{form_data.risk_profile['6.25']}}" {% endif %} {% if historical_mag==6.25 %} selected="selected" {% endif %}>6.25</option>
+                <option {% if form_data.seismic_zone=="true" %} display_under="{{form_data.risk_profile['6.50']}}" {% endif %} {% if historical_mag==6.5 %} selected="selected" {% endif %}>6.50</option>
+                <option {% if form_data.seismic_zone=="true" %} display_under="{{form_data.risk_profile['6.75']}}" {% endif %} {% if historical_mag==6.75 %} selected="selected" {% endif %}>6.75</option>
+                <option {% if form_data.seismic_zone=="true" %} display_under="{{form_data.risk_profile['7.00']}}" {% endif %} {% if historical_mag==7.0 %} selected="selected" {% endif %}>7.00</option>
+                <option {% if historical_mag==7.25 %} selected="selected" {% endif %}>7.25</option>
+                <option {% if historical_mag==7.50 %} selected="selected" {% endif %}>7.50</option>
+                <option {% if historical_mag==7.75 %} selected="selected" {% endif %}>7.75</option>
+                <option {% if historical_mag>7.75 %} selected="selected"{% endif %}>8.00</option>
+            </select>
+        </div>
+        <div hidden id="display_under" style="font-size: 13px; padding-bottom: 20px;"></div>
+
+        <div class="form-group">
+
+            <label for="depth">
+                <key></key>
+            </label>
+
+            <select name="d" class="form-control exp-coll exp-click" id="depth" size='0' onblur="this.size=0;">
+                <option {% if historical_depth==0 %} selected="selected" {% endif %}>0</option>
+                <option {% if historical_depth==5 %} selected="selected" {% endif %}>5</option>
+                <option {% if historical_depth==10 %} selected="selected" {% endif %}>10</option>
+                <option {% if historical_depth==15 %} selected="selected" {% endif %}>15</option>
+                <option {% if historical_depth==20 %} selected="selected" {% endif %}>20</option>
+                <option {% if historical_depth==25 %} selected="selected" {% endif %}>25</option>
+                <option {% if historical_depth==30 %} selected="selected" {% endif %}>30</option>
+                <option {% if historical_depth==35 %} selected="selected" {% endif %}>35</option>
+                <option {% if historical_depth==40 %} selected="selected" {% endif %}>40</option>
+                <option {% if historical_depth==45 %} selected="selected" {% endif %}>45</option>
+                <option {% if historical_depth==50 %} selected="selected" {% endif %}>50</option>
+                <option {% if historical_depth==55 %} selected="selected" {% endif %}>55</option>
+                <option {% if historical_depth==60 %} selected="selected" {% endif %}>60</option>
+                <option {% if historical_depth==65 %} selected="selected" {% endif %}>65</option>
+                <option {% if historical_depth==70 %} selected="selected" {% endif %}>70</option>
+                <option {% if historical_depth==75 %} selected="selected" {% endif %}>75</option>
+                <option {% if historical_depth==80 %} selected="selected" {% endif %}>80</option>
+                <option {% if historical_depth==85 %} selected="selected" {% endif %}>85</option>
+                <option {% if historical_depth==90 %} selected="selected" {% endif %}>90</option>
+                <option {% if historical_depth==95 %} selected="selected" {% endif %}>95</option>
+                <option {% if historical_depth> 95 %} selected="selected"{% endif %}>100</option>
+            </select>
+        </div>
+
+        {% if form_data.historical_earthquake=="true" or form_data.seismic_zone=="true" %}
+        <div style="text-align:center;">
+            <font size="2">
+                {% if form_data.seismic_zone=="true" %}
+                <b>{{ _("Seismic Zone") }}</b><br>
+                <i>{{form_data.src_name}}</i><br><br>
+                {% endif %}
+                {% if form_data.historical_earthquake=="true" %}
+                <b>{{ _("Nearest Historical Earthquake") }}</b><br>
+                {{ _("Date") }}: {{form_data.year}}/{{form_data.month}}/{{form_data.day}}<br>
+                {{ _("Location") }}: {{form_data.long}}, {{form_data.lat}}<br>
+                {{ _("Magnitude") }}: {{form_data.mag}} <br>
+                {{depth}}
+                {% else %}
+                <div style="text-align:center;">
+                    <font size="2">
+                        <i>{{ _("No historical earthquakes.") }}</i>
+                    </font>
+                </div>
+                {% endif %}
+            </font>
+        </div>
+        {% else %}
+        <div style="text-align:center;">
+            <font size="2">
+                <i>{{ _("No historical earthquakes.") }}</i>
+            </font>
+        </div>
+        {% endif %}
+        <div style="text-align:center;">
+            <font size="1">
+                Sources: <a href="http://earthquakescanada.nrcan.gc.ca/index-en.php">(1)</a>, <a href="https://doi.org/10.4095/296908">(2)</a>
+            </font>
+        </div>
+        <div class="form-group">
+            <!-- <label for="srs">Projection</label>-->
+            <input name="srsName" type="hidden" class="form-control" id="srs" placeholder="" value="EPSG: 4326"
+                readonly="readonly" />
+        </div>
+
+        <!-- when we have other projections, we can use this code below and delete the input above -->
+        <!--<div class="form-group">
+				<label for="srs">Projection</label>
+				<select name="srsName" class="form-control" id="srs" >
+					<option selected="selected">EPSG:4326</option>
+				</select>
+			</div>-->
+
+        <!--<div class="form-group">
+				<label for="srs">DEBUG</label>
+				<input name="debug" type="text" class="form-control" id="debug" placeholder="" value="true"/>
+			</div>	-->
+    </div>
+    <div id="seismicThree" style="display:none">
+
+        <label for="return">
+            {{ _("Return period (years)") }}
+            <key></key>
+        </label>
+
+        <select name="r" class="form-control exp-coll" id="return" size='0' onchange='this.size=0;' onblur="this.size=0;">
+            <option selected>50</option>
+            <option>100</option>
+            <option>250</option>
+            <option>475</option>
+            <option>1000</option>
+            <option>2000</option>
+            <option>2475</option>
+            <option>5000</option>
+            <option>10000</option>
+        </select>
+    </div>
+</form>

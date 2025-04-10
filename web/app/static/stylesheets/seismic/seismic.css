@@ -1,0 +1,13 @@
+.modal-backdrop{
+    opacity: 0.2 !important;
+}
+
+#marker {
+    width: 30px;
+    display: block !important;
+    height: 30px; 
+    opacity: 1;
+    cursor: default !important;
+    background-image: url("../../images/eq30pxRed.png");
+    
+}

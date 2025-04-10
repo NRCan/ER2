@@ -1,0 +1,144 @@
+= NGINX Component of the ER2 Architecture =
+
+Nginx is the web server that receives HTTP requests from users.
+
+== Main configuration files ==
+
+*All the magic happens in 2 main files:*
+
+- script.sh
+- conf.d/myproxies.conf
+
+== Building the container ==
+
+....
+docker build -t nginx-config .
+....
+
+NOTE: The Dockerfile add the configuration files
+
+
+== Running the container ==
+
+=== Basic run ===
+
+....
+docker run --env-file ../prod_nick_pc.env --name nginx-config -d -p <host-port>:80 nginx-config
+....
+
+=== Development run with mapped volumes for error logs and cache folder ===
+
+....
+docker run --rm --env-file ../secrets/wmscluster.env --name nginx-config -d -v C:/wms/nginx/cache:/etc/nginx/cache -v C:/wms/nginx/error.log:/etc/nginx/error_log.log -p <host-port>:80 nginx-config
+....
+
+IMPORTANT: The *.env file contains important sensitive data configuration information such as passwords and other connection parameters. The environment file for local development is named "wmscluster_localhost.env" and the staging is named "wmscluster_stage.env". The PRODUCTION environment file is named "wmscluster_prod.env".
+
+Test link: (Should result in a 404 NGINX error message)
+http://<local-server>:<host-port>/
+or
+http://<dev-server>:<host-port>/
+
+
+== Push the image to Docker Hub ==
+
+....
+docker build -t dcplab/nginx-config:0.0.0 .
+
+docker image push dcplab/nginx-config:0.0.0
+....
+
+IMPORTANT: Replace "0.0.0" with the current image build version.
+
+=== 4.2 Alternative procedure when Docker Hub access is denied ( Local folder)
+
+----
+docker build -t dcplab/nginx-config:0.0.0 .
+docker save -o c:/wms/nginx-config_0.0.0.tar dcplab/nginx-config:0.0.0
+----
+
+IMPORTANT: Replace "0.0.0" with the current image build version.
+
+Now move your Tar file to the Stage environment application layer and notifiy: \\<server-name>\misc\docker\images
+
+== Useful container shell commands ==
+
+=== Open NGINX shell ===
+
+....
+docker exec -i -t nginx-config bash
+....
+
+=== Shell commands ===
+
+*Install Nano for file viewing and editing:*
+....
+apt update
+apt upgrade
+apt install nano
+....
+
+*Get version:*
+`nginx -v`
+
+*Get file list with details:*
+`ls -ltr`
+
+*Get nginx status:*
+`service nginx status`
+
+
+*This folder contains nginx's main config files:*
+
+`cd /etc/nginx`
+
+- nginx.conf
+- conf.d/default.conf
+- conf.d/myproxies.conf
+
+
+*Contains error and access logs:*
+`cd /var/log/nginx`
+
+
+*Contains default web page:*
+`cd /usr/share/nginx/html`
+
+
+*Run shell as superuser:*
+`su -`
+
+
+*To install systemd:*
+`apt-get install systemd`
+
+
+*While your nginx instance is running, you can manage it by sending signals:*
+
+[sudo] nginx -s signal
+
+Available signals:
+
+- stop: fast shutdown
+- quit: graceful shutdown (wait for workers to finish their processes)
+- reload: reload the configuration file
+- reopen: reopen the log files
+
+Example reload:
+`docker container exec nginx-config nginx -s reload`
+
+More info: https://www.netguru.com/codestories/nginx-tutorial-basics-concepts
+
+*Help:*
+`nginx -h`
+
+
+*-t: test configuration and exit*
+`nginx -t`
+
+*-T: test configuration, dump it and exit*
+`nginx -T`
+
+Example test nginx:
+`docker container exec nginx-config nginx -t`
+

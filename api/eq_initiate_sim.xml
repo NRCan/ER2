@@ -1,0 +1,33 @@
+<wps:Execute xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" service="WPS" version="1.0.0" xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsExecute_request.xsd">
+       <ows:Identifier>ER2Process</ows:Identifier>
+       <wps:DataInputs>
+              <wps:Input>
+                     <ows:Identifier>Magnitude</ows:Identifier>
+                     <wps:Data>
+                           <wps:LiteralData dataType="float">%magnitude%</wps:LiteralData>
+                     </wps:Data>
+              </wps:Input>
+              <wps:Input>
+                     <ows:Identifier>Depth</ows:Identifier>
+                     <wps:Data>
+                           <wps:LiteralData dataType="float">%depth%</wps:LiteralData>
+                     </wps:Data>
+              </wps:Input>
+	       <wps:Input>
+                     <ows:Identifier>Return</ows:Identifier>
+                     <wps:Data>
+                            <wps:LiteralData dataType="integer">%return_period%</wps:LiteralData>
+                     </wps:Data>
+              </wps:Input>
+              <wps:Input>
+                     <ows:Identifier>Epicenter</ows:Identifier>
+                     <wps:Data>
+                           <wps:ComplexData>
+                                  <gml:Point xmlns:gml="http://www.opengis.net/gml" xmlns="http://www.opengis.net/gml" gml:id="P1" srsName="EPSG:4326" xsi:schemaLocation="http://www.opengis.net/gml http://schemas.opengis.net/gml/3.1.1/base/geometryPrimitives.xsd">
+                                         <gml:pos srsDimension="2">%xCoord% %yCoord%</gml:pos>
+                                  </gml:Point>
+                           </wps:ComplexData>
+                     </wps:Data>
+              </wps:Input>
+       </wps:DataInputs>
+</wps:Execute>

@@ -1,0 +1,36 @@
+<li class="nav-item dropup">
+    <button class="btn btn-dark dropdown-toggle disabled" title="{{ _('Change layer') }}" type="button" id="changeLayer"
+        data-toggle="dropdown" data-placement="top" aria-haspopup="true" aria-expanded="false">
+        <i class="far fa-map fa-lg"></i>
+    </button>
+
+    <div id="tog" class="dropdown-menu" role="menu" aria-labelledby="Toggle Layers">
+        <div class="form-group" style="padding-left: 10px; padding-right: 10px">
+            <select name="parameter" class="form-control form-control-sm" id="selectSim" placeholder="">
+            </select>
+        </div>
+        <div class="dropdown-divider" id="dropdownLayerz"></div>
+        <div id='layerList'></div>
+
+        <div class="dropdown-divider"></div>
+
+        <a class="dropdown-header" id="simStats" title="Open simulation statistics" data-placement="left"
+            target="_blank" href="">
+            <i class="fas fa-download fa-lg"></i>
+        </a>
+    </div>
+</li>
+
+<li class="nav-item dropup">
+    <button class="btn btn-dark dropdown-toggle disabled" title="{{ _('Toggle action') }}" type="button" id="modesPic"
+        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <i class="fas fa-crosshairs fa-lg"></i>
+    </button>
+    <div class="dropdown-menu" role="menu" aria-labelledby="Toggle Modes">
+        <div id="modes">
+            <a id="simMode" class="mode dropdown-item active" href="#">{{ _('Set epicentre') }}</a>
+            <a id="tractMode" class="mode dropdown-item disabled" href="#">{{ _('Query census tract') }}</a>
+        </div>
+    </div>
+</li>
+

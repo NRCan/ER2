@@ -1,0 +1,26 @@
+<form action="{{ config.ER2_API ~ "/initiate" }}" id=formSim method="GET" enctype="application/x-www-form-urlencoded">
+	<key></key>{{form_data.x}}&#176;, {{form_data.y}}&#176;
+	<br>
+	<br>
+	<span id="water-depth">
+		<div class="form-group">
+			<key></key>&nbsp;
+			<input name="waterLevel" type="number" style="width: 4em; padding-left: 2.5px" min="0" max="30" step="0.5" value="0"
+			 id="water-depth-slider">
+		</div>
+	</span>
+	<div class="form-group">
+		<!-- <label for="x">X coordinate</label> -->
+		<input name="x" type="hidden" class="form-control" id="x" placeholder="" value={{form_data.x}} readonly="readonly" />
+	</div>
+	<div class="form-group">
+		<!-- <label for="y">Y coordinate</label> -->
+		<input name="y" type="hidden" class="form-control" id="y" placeholder="" value={{form_data.y}} readonly="readonly" />
+	</div>
+
+	<div class="form-group">
+		<!-- <label for="srs">Projection</label>-->
+		<input name="srsName" type="hidden" class="form-control" id="srs" placeholder="" value="EPSG: 4326" readonly="readonly" />
+	</div>
+</form>
+

@@ -1,0 +1,1814 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+<div id="map" class="map" , lang="{{ lang }}" , module="{{ module }}"></div>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+{% include 'risk-common/css-files.html' %}
+{% endblock %}
+
+{% block right_nav_content %}
+<li class="nav-item">
+  <button class="btn btn-dark" data-toggle="tooltip" data-placement="top" title="{{ _('Info') }}" id="ER2">
+    <i class="fas fa-info-circle fa-lg"></i>
+  </button>
+</li>
+{% endblock %}
+
+{% block nav_content %}
+{% include 'risk-common/risk-navbar.html'%}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename="javascripts/ol.js") }}"></script>
+<script src="{{ url_for('static', filename="javascripts/ol-contextmenu.min.js") }}"></script>
+
+<script>
+  $.noConflict();
+  jQuery(document).ready($ => {
+
+    const floodModuleOn = Boolean(
+      "{{module}}" === "flood"
+    );
+
+    const seismicModuleOn = Boolean(
+      "{{module}}" == "seismic"
+    );
+
+    module_translate = {
+      "Seismic": "{{ _("Seismic") }}",
+      "Wildfire": "{{ _("Wildfire") }}",
+      "Flood": "{{ _("Flood") }}"
+    }
+
+    const startObjects = {
+      catalog: {
+        status: {
+          currentSimIndex: "",
+          currentLayerIndex: "",
+          lastSimIndex: "none",
+          lastLayerIndex: "none"
+        },
+        simulations: [],
+        baseLayers: [],
+        marker: null,
+        queriedObject: null,
+        legendURLs: null,
+        rings: null,
+        api: {
+          url: "./static/apps.json", // "API/GFM_API.json",
+          config: null,
+          module: $("#map").attr("module"), // flood, earthquake, whatever
+          lang: ""
+        }
+      }
+    };
+
+    function getApi() {
+      return startObjects.catalog.api;
+    }
+
+    function getConfig() {
+      return getApi().config;
+    }
+
+    function getLanguage() {
+      return getApi().lang;
+    }
+
+    function getCatalogBaseLayers() {
+      return startObjects.catalog.baseLayers;
+    }
+
+    function getApiBaseLayers() {
+      return getConfig().baseLayers;
+    }
+
+    $(document).on("click", event => {
+      sideOfWindowClickedOn = detectClickSide(event);
+    });
+
+    function detectClickSide(event) {
+      const clickSpotXValue = event.pageX;
+      const windowWidth = $(window).width();
+
+      const windowMidpoint = windowWidth / 2;
+
+      const clickedOnLeft = Boolean(
+        windowWidth - clickSpotXValue > windowMidpoint
+      );
+      if (clickedOnLeft) {
+        return "left";
+      }
+      return "right";
+    }
+
+    // Get the config apps,
+    getLanguageFromHtmlandSet()
+      .then(() => getConfigList())
+      .then(apps => findAndSetConfig(apps))
+      .then(() => completeStartupObject())
+      .then(() => initiate());
+
+    async function getLanguageFromHtmlandSet() {
+      const language = $("#map").attr("lang");
+      const englishIsRequested = Boolean(language === "en");
+      if (englishIsRequested) {
+        getApi().lang = 1;
+      } else {
+        getApi().lang = 0;
+      }
+    }
+
+    async function getConfigList() {
+      const url = getApi().url;
+      const configList = await $.ajax({
+        url,
+        type: "GET",
+        dataType: "json"
+      });
+      return configList.apps;
+    }
+
+    function findAndSetConfig(apps) {
+      for (let i = 0; i < apps.length; i++) {
+        const appName = apps[i].name[getLanguage()].text; // i.e. Flood, Inondation, Sismique, Seismic
+        const moduleDoesMatch = Boolean("{{module}}" == appName);
+        if (moduleDoesMatch) {
+          setConfig(apps[i]);
+          break;
+        }
+      }
+    }
+
+    async function getLegendUrls() {
+      let legend_urlz = {}
+      let getCapUrl_base;
+      if (floodModuleOn) {
+        getCapUrl_base = "{{ config.FLOOD_MAP_SERVICE }}"
+      } else {
+        getCapUrl_base = "{{ config.EQ_MAP_SERVICE }}"
+      }
+
+      await fetch(getCapUrl_base + '&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities').then(response => response.text())
+      .then(str => (new window.DOMParser()).parseFromString(str, "text/xml"))
+      .then(data => {
+
+        let myRegexp = /&layer=(.*)/;
+        let legendUrls = data.getElementsByTagName("LegendURL")
+        for (let j=0; j<legendUrls.length; j++) {
+            nodes = legendUrls[j].childNodes
+            for (var i = 0; i<nodes.length; i++) {
+                node = nodes[i]
+                if (node.tagName=="OnlineResource") {
+                    target_url = node.getAttribute("xlink:href")
+                    let target_url_name = myRegexp.exec(target_url)[1].split('&')[0];
+                    legend_urlz[target_url_name] = target_url
+                }
+            }
+        }
+      });
+      return legend_urlz
+    }
+
+    async function completeStartupObject() {
+      addOSMLayerToCatalogBaseLayers();
+      addCssFile();
+
+      startObjects.catalog.legendURLs = await getLegendUrls();
+      await addBaseLayersToCatalog();
+      startObjects.view = makeView();
+      startObjects.map = makeMap();
+      createLegendElement();
+      make_base_layer_legend();
+    }
+
+    function addCssFile() {
+      const cssUrl = `../static/stylesheets/${"{{module}}"}/${"{{module}}"}.css`;
+      $("<link/>", {
+        rel: "stylesheet",
+        type: "text/css",
+        href: cssUrl
+      }).appendTo("head");
+    }
+
+    function addOSMLayerToCatalogBaseLayers() {
+      getCatalogBaseLayers().push(
+        new ol.layer.Tile({
+          source: new ol.source.OSM({
+            // url: 'https://{a-c}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png'
+          })
+        })
+      );
+    }
+
+    async function addBaseLayersToCatalog() {
+      baseLayersToBeLoaded = Boolean(typeof getApiBaseLayers() !== "undefined");
+      if (baseLayersToBeLoaded) {
+        const baseLayersToBeAdded = await getApiBaseLayers();
+
+        for (const base_layer of baseLayersToBeAdded) {
+
+          service_short = base_layer.service;
+          let service_url;
+
+          // If we're using mapserv
+          if (service_short == 'MAPSERV') {
+            if (floodModuleOn) {
+              service_url = "{{ config.FLOOD_MAP_SERVICE }}"
+            } else {
+              service_url = "{{ config.EQ_MAP_SERVICE }}"
+            }
+          }
+          else {
+            service_url = service_short
+          }
+
+
+
+          if (base_layer.type == "vector") {
+            let response = await fetch(base_layer.url);
+            geojsonObject = await response.json();
+
+            let styleFunction = function (feature) {
+              magnitude = feature.getProperties().MW;
+              let style;
+              if (magnitude > 8) {
+                style = new ol.style.Style({
+                  image: new ol.style.Circle({
+                    stroke: new ol.style.Stroke({ color: "green", width: 1 }),
+                    radius: 5
+                  })
+                });
+              } else {
+                style = new ol.style.Style({
+                  image: new ol.style.Circle({
+                    stroke: new ol.style.Stroke({ color: "red", width: 1 }),
+                    radius: 3
+                  })
+                });
+              }
+              return style;
+            };
+
+            layer_src = new ol.source.Vector({
+              features: new ol.format.GeoJSON({
+                featureProjection: "EPSG:3857"
+              }).readFeatures(geojsonObject)
+            });
+
+            layer = new ol.layer.Vector({
+              source: layer_src,
+              visible: false,
+              zIndex: 100,
+              style: styleFunction
+            });
+            getCatalogBaseLayers().push(layer);
+          } else {
+            base_layer.params.level = 0;
+
+            source = new ol.source.ImageWMS({
+              url: service_url,
+              params: base_layer.params,
+              ratio: base_layer.ratio,
+              serverType: base_layer.serverType,
+              crossOrigin: base_layer.crossOrigin
+            });
+
+
+            // Note the "makeVis" field in the config JSON
+            let visible;
+            if (base_layer.makeVis == true) {
+              visible = true;
+            } else {
+              visible = false;
+            }
+
+            layer = new ol.layer.Image({
+              opacity: base_layer.opacity,
+              source,
+              zIndex: base_layer.zIndex,
+              visible: visible,
+              legend_name: base_layer["legend_name"][document.getElementById("map").getAttribute("lang")],
+              id: base_layer.id
+            });
+
+            layer.getFeatureInfoOnClick = base_layer.getFeatureInfoOnClick;
+            layer['legendURL'] = startObjects.catalog.legendURLs[base_layer.params.LAYERS]
+          }
+          try {
+            additional_keys = Object.keys(base_layer["additional_info"]);
+            for (i = 0; i < additional_keys.length; i++) {
+              if (additional_keys[i] == 'legendParameters') {
+                console.log('pass')
+              } else {
+                layer[additional_keys[i]] =
+                  base_layer["additional_info"][additional_keys[i]];
+              }
+            }
+          } catch { }
+          getCatalogBaseLayers().push(layer);
+        }
+      }
+    }
+
+    function make_base_layer_legend() {
+      let base_layers = getCatalogBaseLayers();
+      for (i = 0; i < base_layers.length; i++) {
+        if ("legendURL" in base_layers[i]) {
+          legendURL = base_layers[i].legendURL;
+          layer_title = base_layers[i].get("legend_name");
+
+          setLegendImage(legendURL, layer_title);
+        }
+      }
+    }
+
+    function makeView() {
+      view = new ol.View({
+        center: ol.proj.fromLonLat([
+          Number(getConfig().mapView.long),
+          Number(getConfig().mapView.lat)
+        ]),
+        zoom: Number(getConfig().mapView.zoom)
+      });
+      return view;
+    }
+
+    function makeMap() {
+      window.app = {};
+      const { app } = window;
+      // creating a div element for appending things to (like the legend)
+      const element = document.createElement("div");
+      element.id = "element";
+      app.mapClickServiceControl = function (optOptions) {
+        const options = optOptions || {};
+        ol.control.Control.call(this, {
+          element,
+          target: options.target
+        });
+      };
+
+      ol.inherits(app.mapClickServiceControl, ol.control.Control);
+      const map = new ol.Map({
+        controls: ol.control
+          .defaults({
+            zoom: false,
+            attribution: true,
+            attributionOptions: {
+              collapsible: false
+            }
+          })
+          .extend([new app.mapClickServiceControl(), new ol.control.ScaleLine()]),
+        layers: getCatalogBaseLayers(),
+        target: "map",
+        view
+      });
+      return map;
+    }
+
+    function setConfig(data) {
+      getApi().config = data;
+    }
+
+    let contextmenu;
+
+    function query_and_form(evt) {
+      let feature_info_requests = Array();
+      all_feature_info = {};
+      // Search through base layers
+      for (i = 0; i < catalog.baseLayers.length; i++) {
+        let received_feature_info = null;
+        // If base layer has getFeatureInfo action for click event
+        // TODO: You shouldn't search with each click; you should make a list prior
+        getFeatureInfoOnClick =
+          catalog.baseLayers[i].getFeatureInfoOnClick; // true or false
+
+        if (getFeatureInfoOnClick) {
+          // retrieve the getFeatureInfoUrl, and note that we want to request JSON, not HTML
+          getFeatureInfoUrl = catalog.baseLayers[i]
+            .getSource()
+            .getGetFeatureInfoUrl(
+              evt.coordinate,
+              view.getResolution(),
+              "EPSG:3857",
+              { INFO_FORMAT: "geojson" }
+            );
+          feature_info_requests.push(
+            $.ajax({
+              url: getFeatureInfoUrl,
+              success: function (result) {
+                try {
+                  if (result["features"].length > 0) {
+                    received_feature_info = result.features[0].properties;
+                    all_feature_info = $.extend(
+                      all_feature_info,
+                      received_feature_info
+                    );
+                  }
+                } catch {
+                  console.log('could not find any')
+                }
+
+              }
+            })
+          );
+        }
+      }
+      let defer = $.when.apply($, feature_info_requests);
+      defer.done(function (a1) {
+        turnOffLayerAlreadyPresentOnMap();
+        placeMarker(evt.coordinate);
+        const coordinates = ol.proj.transform(
+          evt.coordinate,
+          "EPSG:3857",
+          "EPSG:4326"
+        );
+        const x = coordinates[0];
+        const y = coordinates[1];
+
+        // Object.keys(params).forEach(key => tiffValueUrl.searchParams.append(key, params[key]))
+        if (floodModuleOn) {
+          TIFF_VALUE_URL = "{{config['ER2_API']}}" + `/tiffValue?x=${x}&y=${y}`;
+          let startTime = new Date();
+          let timeDiff;
+          fetch(TIFF_VALUE_URL)
+            .then(data => data.text())
+            .then(
+              check_url_parameters => {
+                let check_url = "{{config['ER2_API']}}" + check_url_parameters
+
+                let fetchNow = function () {
+                  fetch(check_url)
+                    .then(data => data.text())
+                    .then(function (data) {
+                      if (data != 'PENDING') {
+                        if (data == "Out of bounds") {
+                          alert(
+                            "Selected location is out of bounds. Try a location within the boundary."
+                          );
+                        } else {
+                          makeNewSimForm(
+                            evt,
+                            all_feature_info,
+                            Number(data)
+                          );
+                        }
+                      }
+                      // if PENDING, keep trying
+                      else {
+                        timeDiff = Math.round(new Date() - startTime);
+                        timeDiff /= 1000;
+                        if (timeDiff < 3) {
+                          fetchNow();
+                        }
+                        else {
+                          alert('An error was produced. Please try again later.')
+                        }
+                      }
+                    });
+                }
+                fetchNow();
+              });
+
+
+        } else {
+          makeNewSimForm(evt, all_feature_info);
+        }
+      });
+    }
+
+    function initiate() {
+      map = startObjects.map;
+      catalog = startObjects.catalog;
+      displayWelcomeModal();
+      addTooltips();
+      firstOpeningOfSession = false;
+
+      map.getViewport().addEventListener("contextmenu", evt => {
+        evt.preventDefault();
+        sideOfWindowClickedOn = detectClickSide(evt);
+      });
+
+
+
+      contextmenu = new ContextMenu({
+        width: 220,
+        defaultItems: true,
+        items: [
+          {
+            text: "{{ _("New simulation") }}",
+            classname: "",
+            callback: query_and_form
+          }
+        ]
+      });
+      map.addControl(contextmenu);
+
+      contextmenu.on("close", () => {
+        $("#map").css("cursor", "crosshair");
+      });
+
+      contextmenu.on("open", () => {
+        $("#map").css("cursor", "default");
+      });
+
+      map.on("singleclick", evt => {
+        const tractModeIsOn = Boolean($("#tractMode").hasClass("active"));
+
+        if (tractModeIsOn) {
+          getCensusInfo(evt);
+        } else {
+          clickCount += 1;
+          const userSingleClicked = Boolean(clickCount === 1);
+          const timeIntervalSingleClick = 400;
+          if (userSingleClicked) {
+            const singleClickTimer = setTimeout(() => {
+              clickCount = 0;
+              if (tractModeIsOff()) {
+                query_and_form(evt)
+              }
+            }, timeIntervalSingleClick);
+          } else if (clickCount === 2) {
+            clearTimeout(singleClickTimer);
+            clickCount = 0;
+          }
+        }
+      });
+
+      $("#selectSim").change(() => {
+        const currentSimIndex = document.getElementById("selectSim").value;
+        setCurrentSimIndex(currentSimIndex);
+        turnOnLayerWithLegend();
+        turnOffLayerAlreadyPresentOnMap();
+        updateLastIndex();
+        addSimMenuOptionIfNeeded(getCurrentSimIndex());
+        updateStatsLink("#simStats");
+        placeMarker();
+      });
+
+      $("#layerList").on("click", "a.lays", function () {
+        selectedLayer = this;
+
+        layerChanged = Boolean(
+          Number(selectedLayer.getAttribute("index")) !==
+          Number(getCurrentLayerIndex())
+        );
+
+        if (layerChanged) {
+          removeActiveState(".lays");
+          addActiveState(selectedLayer);
+          currentLayerIndex = $("#layerList")
+            .children(".active")
+            .attr("index");
+          setCurrentLayerIndex(currentLayerIndex);
+          turnOnLayerWithLegend();
+          turnOffLayerAlreadyPresentOnMap();
+          updateLastIndex();
+          $(".dropdown-menu").removeClass("show");
+        }
+      });
+
+      $(".mode").on("click", function () {
+        clickedOption = this;
+        removeActiveState(".mode");
+        addActiveState(clickedOption);
+
+        simModeWasClicked = Boolean(clickedOption.id === "simMode");
+        tractModeWasClicked = Boolean(clickedOption.id === "tractMode");
+
+        if (simModeWasClicked) {
+          setCursor("crosshair");
+          $("#modesPic").html('<i class="fas fa-crosshairs fa-lg"></i>');
+        }
+
+        if (tractModeWasClicked) {
+          setCursor("help");
+          $("#modesPic").html('<i class="fas fa-question fa-lg"></i>');
+        }
+
+        $("#modes").dropdown("toggle");
+      });
+
+      $("#selectSim").on({
+        change() {
+          $(this).blur();
+        },
+        focus() {
+          selectIsOpen = true;
+        },
+        blur() {
+          selectIsOpen = false;
+        },
+        keyup(e) {
+          if (e.keyCode === 27) {
+            selectIsOpen = true;
+          }
+        }
+      });
+
+      // mouse in, nothing happens; mouse out, toggle close
+      $(".dropdown-menu").hover(() => { }, function () {
+        if (selectIsOpen === false) {
+          $(this).dropdown("toggle");
+        }
+      });
+
+      const zoomIncrament = 1;
+
+      $("#zoomIn").on("click", event => {
+        event.preventDefault();
+        nextZoom = view.getZoom() + zoomIncrament;
+        view.setZoom(nextZoom);
+      });
+
+      $("#zoomOut").on("click", event => {
+        event.preventDefault();
+        nextZoom = view.getZoom() - zoomIncrament;
+        view.setZoom(nextZoom);
+      });
+
+      map.on("pointerup", () => {
+        if ($("#tractMode").hasClass("active")) {
+          setCursor("help");
+        } else {
+          setCursor("crosshair");
+        }
+      });
+
+      $("#zoomOut, #zoomIn, #ER2, #changeLayer, #modesPic").click(function () {
+        hideTooltip(this);
+      });
+
+      $("#ER2").on("click", () => {
+        displayWelcomeModal();
+      });
+    }
+
+    let sideOfWindowClickedOn;
+    let clickCount = 0;
+    let selectIsOpen = false;
+    let simulationNotRunning = true;
+
+    class ModalProperties {
+      modal_footer_classes = ''
+      constructor(headerText, bodyText, buttons, id, modal_footer_classes) {
+        this.headerText = headerText;
+        this.bodyText = bodyText;
+        this.buttons = buttons;
+        this.id = id;
+        this.modal_footer_classes = modal_footer_classes;
+      }
+    }
+
+    async function displayWelcomeModal() {
+      const welcome_text_url = "{{ url_for('main.get_text', hazard=module, text_requested='welcome') }}";
+      welcomeText = await $.get(welcome_text_url);
+
+      const moduleCapitalized = "{{module}}".charAt(0).toUpperCase() + "{{module}}".slice(1)
+      const welcomeTitle = `<div class='title'> ER2 &ndash; ${
+        module_translate[moduleCapitalized]
+        }</div>`;
+      const welcomeModalButton = [
+        {
+          class: "btn btn-dark",
+          innerText: "{{ _("Close") }}",
+          id: "closeButton"
+        }
+      ];
+      const welcomeModalProperties = new ModalProperties(
+        welcomeTitle,
+        welcomeText,
+        welcomeModalButton,
+        "welcome",
+        'd-flex justify-content-start'
+      );
+
+      setModalHeader(welcomeModalProperties.headerText);
+      setModalBody(welcomeModalProperties.bodyText);
+      setModalId(welcomeModalProperties.id);
+      deleteLastButtons();
+      createButtons(welcomeModalProperties.buttons, welcomeModalProperties.modal_footer_classes);
+      $(".modal-dialog").removeAttr("id");
+      showModal();
+    }
+
+    function removeModalBackdrop() {
+      $(".modal-backdrop").remove();
+    }
+
+    async function makeNewSimForm(evt, all_feature_info, levelTif = 0) {
+      const coordinates = ol.proj.transform(
+        evt.coordinate,
+        "EPSG:3857",
+        "EPSG:4326"
+      );
+      processingFormData = await getFormText(coordinates, all_feature_info);
+      addContentToFormModal(processingFormData);
+      $("#mag").change(function () {
+        e = document.getElementById("mag");
+        display_under = e.options[e.selectedIndex].getAttribute("display_under");
+        if (display_under) {
+          document.getElementById("display_under").removeAttribute("hidden");
+          document.getElementById("display_under").innerHTML =
+            "Frequency: " + display_under;
+        } else {
+          document.getElementById("display_under").setAttribute("hidden", "true");
+        }
+      });
+      if (catalog.api.module == "seismic" || catalog.api.module == "seisme") {
+        document.getElementById("runButton").setAttribute("hidden", "true");
+        document.getElementById("form-back").setAttribute("hidden", "true");
+
+        $("#form-back").on("click", e => {
+          document.getElementById("form-back").removeAttribute("data-dismiss");
+          document.getElementById("runButton").setAttribute("hidden", "true");
+          document.getElementById("form-back").setAttribute("hidden", "true");
+          document.getElementById("coordinatesForm").style.display = "none";
+          document.getElementById("seismicOne").style.display = "block";
+          document.getElementById("seismicTwo").style.display = "none";
+          document.getElementById("seismicThree").style.display = "none";
+        });
+
+        $("#deterministicBtn").on("click", e => {
+          document.getElementById("coordinatesForm").style.display = "block";
+          document.getElementById("form-back").style.display = "block";
+          document.getElementById("seismicOne").style.display = "none";
+          document.getElementById("seismicTwo").style.display = "block";
+          document.getElementById("form-back").removeAttribute("hidden");
+          document.getElementById("runButton").removeAttribute("hidden");
+        });
+        $("#probabilisticBtn").on("click", e => {
+          document.getElementById("coordinatesForm").style.display = "block";
+          document.getElementById("seismicOne").style.display = "none";
+          document.getElementById("seismicThree").style.display = "block";
+          document.getElementById("form-back").style.display = "block";
+          document.getElementById("form-back").removeAttribute("hidden");
+          document.getElementById("runButton").removeAttribute("hidden");
+        });
+      }
+      resizeFormModal();
+      showModal();
+      removeModalBackdrop();
+
+      setModalCloseSettings();
+
+      function setModalCloseSettings() {
+        $(".modal").one("hidden.bs.modal", e => {
+          if (simulationNotRunning) {
+            placeMarker();
+            simHasBeenConducted = Boolean(catalog.status.currentSimIndex !== "");
+            if (simHasBeenConducted) {
+              turnOnLayerWithLegend();
+            }
+          }
+        });
+      }
+
+      function getFormText(lonlat, all_feature_info) {
+        const timeStampToAvoidCaching = new Date().getTime();
+
+        const formUrl = "{{ url_for('main.generate_form', hazard=module) }}";
+
+        let formData = {
+          x: lonlat[0].toFixed(8),
+          y: lonlat[1].toFixed(8),
+          srs: "EPSG:4326",
+          hazard: "{{module}}",
+          feature_info_present: false
+        };
+
+        if (all_feature_info != {}) {
+          formData["feature_info_present"] = true;
+          for (let key in all_feature_info) {
+            formData[key] = all_feature_info[key];
+          }
+        }
+        getData = $.get(formUrl, formData);
+        return getData;
+      }
+
+      function resizeFormModal() {
+        windowWidthThreshold = 800;
+        const windowIsWide = Boolean($(window).width() > windowWidthThreshold);
+        if (windowIsWide) {
+          if (sideOfWindowClickedOn === "right") {
+            $(".modal-dialog").attr("id", "leftSide");
+          } else {
+            $(".modal-dialog").attr("id", "rightSide");
+          }
+        }
+      }
+
+      function addContentToFormModal(formData) {
+        const headerText = `<div class='title'>${"{{ _("NEW SIMULATION") }}"}</div >`;
+
+        let cancelText = "{{ _("Cancel") }}";
+        if (seismicModuleOn) {
+          cancelText = "{{ _("Cancel") }}";
+        }
+          const newSimModalButtons = [
+          {
+            class: "btn btn-danger",
+            innerText: "{{ _("Run") }}",
+            id: "runButton"
+          },
+          {
+            class: "btn btn-link btn-sm linkStyle",
+            innerText: cancelText,
+            id: "cancelButton"
+          }
+        ];
+
+        const newSimModalProperties = new ModalProperties(
+          headerText,
+          formData,
+          newSimModalButtons,
+          "newSim",
+          'd-flex justify-content-start'
+        );
+        setModalHeader(newSimModalProperties.headerText);
+        setModalId("newSim");
+        setModalBody(newSimModalProperties.bodyText);
+        deleteLastButtons();
+        createButtons(newSimModalProperties.buttons, newSimModalProperties.modal_footer_classes);
+
+        $("key").each(function(i) {
+          const formFields = getConfig().form[getLanguage()];
+          $(this).html(formFields[i]);
+        });
+
+        // Magnitude select, depth select, etc. Expand to 7 when clicked.
+        $(".exp-click").mousedown(function() {
+          this.size = 7;
+        });
+
+        $("#newSim").one("hidden.bs.modal", e => {
+          if (
+            catalog.api.module == "flood" ||
+            catalog.api.module == "inondation"
+          ) {
+            setWaterDepthBaseLayer(0, levelTif);
+          }
+        });
+
+        runButton = document.getElementById("runButton");
+        runButton.onclick = function() {
+          submittedCoordinates = getOlProjCoordinates(
+            Number(document.getElementById("x").value),
+            Number(document.getElementById("y").value)
+          );
+          placeMarker(submittedCoordinates);
+          if ("{{module}}" == "seismic") {
+            addAnimation(submittedCoordinates);
+          }
+          simulationNotRunning = false;
+          setCursor("wait");
+          startTime = new Date();
+          enableDropups();
+
+          initiateCatalogEntry(levelTif, submittedCoordinates).then(() => submitProcessingForm());
+        };
+
+        if (floodModuleOn) {
+          turnOnBaseLyr("onClick");
+          const waterDepthSlider = document.getElementById("water-depth-slider");
+          const waterDepth = document.getElementById("water-depth");
+          setWaterDepthBaseLayer(
+            Number(document.getElementById("water-depth-slider").value),
+            levelTif
+          );
+
+          waterDepthSlider.oninput = function() {
+            const waterLevel = this.value;
+            setWaterDepthBaseLayer(Number(waterLevel), levelTif);
+          };
+
+          function setWaterDepthBaseLayer(waterLevel, levelTif) {
+            if (waterLevel == 0) {
+              levelTif = 0;
+            }
+
+            catalog.baseLayers.forEach(layer => {
+              layerId = layer.get("id");
+              if (layerId === "gat_flood_extent") {
+                floodTifSource = layer.getSource();
+                floodTifSource.updateParams({
+                  level: String(waterLevel + levelTif)
+                });
+                floodTifSource.changed();
+              }
+            });
+          }
+        }
+    }
+  }
+
+  async function initiateCatalogEntry(levelTif=null, submittedCoordinates) {
+    nextIndex = catalog.simulations.length + 1;
+
+    if (floodModuleOn) {
+      catalog.simulations.push({
+        simID: `sim${ nextIndex }`,
+        title: `Simulation ${ nextIndex }`,
+        'markerPos': submittedCoordinates,
+        levelTif
+      });
+    } else {
+      catalog.simulations.push({
+        simID: `sim${ nextIndex }`,
+        title: `Simulation ${ nextIndex }`,
+        'markerPos': submittedCoordinates
+      });
+    }
+  }
+
+  function submitProcessingForm() {
+
+    if (floodModuleOn) {
+      unadjustedSliderValue = Number($("#water-depth-slider").val());
+      adjustedSliderValue =
+        unadjustedSliderValue + catalog.simulations[0].levelTif;
+      $("#water-depth-slider").val(adjustedSliderValue);
+    }
+    if (seismicModuleOn) {
+      deterministicOn = Boolean(
+        document.getElementById("seismicTwo").style.display == "block"
+      );
+      if (deterministicOn) {
+        const option = document.createElement("option");
+        option.text = "0";
+        document.getElementById("return").add(option);
+        document.getElementById("return").value = "0";
+      } else {
+        // probabilistic
+        document.getElementById("mag").value = "7.00";
+        document.getElementById("depth").value = "0";
+      }
+    }
+
+    $.ajax({
+      url: $("form").attr("action"),
+      type: "POST",
+      data: $("form").serialize(),
+      success(monitorData) {
+        // submitted_values = $("form").serializeArray()
+        // let submitted_coords = [null, null]
+        // for (let i; i<submitted_values.length; i++) {
+        //   if (submitted_values[i]['name'] = 'x'){
+        //     submitted_coords[0] = submitted_values[i]['value'];
+        //   };
+        //   if (submitted_values[i]['name'] = 'y'){
+        //     submitted_coords[1] = submitted_values[i]['value']
+        //   }
+        // }
+
+        activateProgressBar();
+        task_status_url = "{{ config.ER2_API}}" + monitorData.task_status_url + "&lang=" + document.getElementById("map").getAttribute("lang")
+        monitorProcessing(task_status_url);
+      },
+      cache: false
+    });
+
+    function activateProgressBar() {
+      progressBarExists = Boolean($("#progress-bar").length);
+      if (progressBarExists) {
+        const progressBarStatus = window
+          .getComputedStyle(document.getElementById("progress-bar"))
+          .getPropertyValue("display");
+        if (progressBarStatus == "none") {
+          // const floodModuleOn = Boolean("{{module}}" === "flood");
+          if (floodModuleOn) {
+            $(".progress-bar")
+              .addClass(
+                "bg-dark active progress-bar-striped progress-bar-animated"
+              )
+              .text("{{ _("Determining affected blocks") }}");
+          }
+          $("#progress-bar").show();
+        }
+      } else {
+        makeProgressBar();
+      }
+    }
+  }
+
+  function getOlProjCoordinates(x, y) {
+    return ol.proj.fromLonLat([x, y]);
+  }
+
+  function enableDropups() {
+    document.getElementById("changeLayer").classList.remove("disabled");
+    document.getElementById("modesPic").classList.remove("disabled");
+  }
+
+  function checkIfModalNotCreated(id) {
+    modal = document.getElementById(id);
+    if (modal == null) {
+      return true;
+    }
+    return false;
+  }
+
+  function makeModal() {
+    $('<div id="modalSpot"></div>').appendTo("body");
+    $(".modal").appendTo("#modalSpot");
+  }
+
+  function makeProgressBar() {
+    $('<div class="progress" id="progress-bar" ></div>').appendTo("body");
+    if (floodModuleOn) {
+      $("#progress-bar").html(
+        "<div class='progress-bar progress-bar-striped progress-bar-animated active bg-dark' id='progress-bar-real' style=\"width: 185%; padding:3px\" role='progressbar' aria-valuenow='0'  aria-valuemin='0' aria-valuemax='100'>" + "{{ _("Determining affected blocks") }}" + "</div>"
+      );
+    } else {
+      $("#progress-bar").html(
+        '<div class="progress-bar progress-bar-striped progress-bar-animated active bg-dark" id="progress-bar-real" style="width: 0%; padding:3px" role="progressbar">0%</div>'
+      );
+    }
+  }
+
+  function checkForActions(data) {
+    actionsPresent = Boolean(data !== null);
+    return actionsPresent;
+  }
+
+  function updateProgressbar(currentMonitorData) {
+    if (
+      typeof currentMonitorData !== "undefined" &&
+      currentMonitorData.progress > 0
+    ) {
+      if (Number(currentMonitorData.progress) !== 100) {
+        if (floodModuleOn) {
+          let processing_msg = "{{ _("Processing block ") }}" + currentMonitorData.current + "{{ _(" of") }}" + " " + currentMonitorData.total + " (" + String(currentMonitorData.progress) + "%)";
+          $(".progress-bar").text(processing_msg);
+        } else {
+          $(".progress-bar").text(`${ String(currentMonitorData.progress) }% `);
+          $(".progress-bar").css(
+            "width",
+            String(currentMonitorData.progress) + "%"
+          );
+        }
+      }
+
+      if (Number(currentMonitorData.progress) === 100) {
+        $("#progress-bar-real")
+          .addClass("progress-bar-success")
+          .removeClass("progress-bar-striped active");
+        timeElapsed = ((new Date() - startTime) / 1000).toFixed(1);
+        $(".progress-bar").css(
+          "width",
+          String(currentMonitorData.progress) + "%"
+        );
+        let complete_progres_msg = "{{ _("Simulation completed in") }}" + " " + timeElapsed + " s"
+        $("#progress-bar-real").text(complete_progres_msg);
+      }
+    }
+  }
+
+  function monitorProcessing(taskStatusUrl) {
+    const checkStatusInterval = 2000;
+    let currentMonitorData;
+    $.ajax({
+      url: taskStatusUrl,
+      type: "GET",
+      dataType: "json",
+      success(monitorData) {
+        currentMonitorData = monitorData;
+        updateProgressbar(currentMonitorData);
+        actionList = currentMonitorData.actions;
+        actionsToDo = checkForActions(actionList);
+        if (actionsToDo) {
+          processActionList(actionList);
+        }
+      },
+      cache: false,
+      complete() {
+        if (currentMonitorData !== null) {
+          console.log(currentMonitorData)
+          try {
+            notDone = Boolean(currentMonitorData.status === "not-started" || currentMonitorData.status === "ongoing");
+            done = Boolean(currentMonitorData.status === "done" || currentMonitorData.status === "completed");
+          }
+          catch {
+            notDone = true;
+            done = false;
+          }
+        }
+
+        if (notDone) {
+          setTimeout(() => {
+            monitorProcessing(taskStatusUrl);
+          }, checkStatusInterval);
+        } else if (done) {
+          simulationNotRunning = true;
+          populateResultSelectMenu();
+          actionList = currentMonitorData.actions;
+          actionsToDo = checkForActions(actionList);
+          if (actionsToDo) {
+            loadPageActions(currentMonitorData.actions);
+          }
+          displaySimCompleteModal();
+        } else {
+          alert("An error occured. Please refresh the page and try again.");
+          $("#progress-bar").hide();
+        }
+      }
+    });
+  }
+
+  function getLatestSim() {
+    currentSimIndex = catalog.simulations.length - 1;
+    return currentSimIndex;
+  }
+
+  function addMarkerCatalogEntry(position) {
+    catalog.simulations[getLatestSim()].markerPos = position;
+  }
+
+  function addMagnitudeCatalogEntry(mag) {
+    catalog.simulations[getLatestSim()].magnitude = mag;
+  }
+
+  function handleLayer(source) {
+    layerExists = checkIfLayerExists();
+  }
+
+  function findMatchingLayer(id) {
+    const mapLayers = map.getLayers();
+    for (let i = 0; i < mapLayers.getLength(); i += 1) {
+      if (mapLayers.item(i).get("id") === id) {
+        return mapLayers.item(i);
+      }
+    }
+    return false;
+  }
+
+  function setCurrentSimIndex(value) {
+    catalog.status.currentSimIndex = value;
+  }
+
+  function setCurrentLayerIndex(value) {
+    catalog.status.currentLayerIndex = value;
+  }
+
+  function refreshLayer(layer) {
+    layer.getSource().updateParams({
+      time: Date.now()
+    });
+    getCurrentSim()
+      .layers[0].olLayer.getSource()
+      .updateParams({
+        time: Date.now()
+      });
+  }
+
+  function handleLayerAction(source) {
+    let layerCount = 0;
+    setCurrentLayerIndex(0);
+    setCurrentSimIndex(getLatestSim());
+
+    source.forEach(src => {
+      const matchingLayer = findMatchingLayer(src.id);
+
+      if (matchingLayer) {
+        refreshLayer(matchingLayer);
+      } else {
+        layerCount += 1;
+
+        const wmsSource = makeWmsSource(src);
+        const wmsLayer = makeWmsLayer(wmsSource);
+
+        wmsLayer.set("id", src.id);
+
+        // legendURL = `http://<server-name>:8080/geoserver/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=${src.layers}&style=${src.styles}&transparent=True`;
+  legendURL = src.legend_url;
+  layerCatalogInfo = {
+    olLayer: wmsLayer,
+    query_info_url: src.query_info_url,
+    wmsSource,
+    layerID: `sim${catalog.simulations.length}_layer${layerCount}`,
+    layerTitle: src.legend_name,
+    legendURL
+  };
+
+  createLayerCatalogEntry(layerCatalogInfo);
+
+  currentStatus = {
+    currentSimIndex: getCurrentSimIndex(),
+    currentLayerIndex: getCurrentLayerIndex()
+  };
+  const isFirstSim = Boolean(getLastLayerIndex() == "none");
+  const isFirstLayerOfSim = Boolean(layerCount == 1);
+
+  if (isFirstLayerOfSim) {
+    if (isFirstSim) {
+      changeContextMenu();
+    }
+    turnOnLayerWithLegend();
+    turnOffLayerAlreadyPresentOnMap();
+    updateLastIndex();
+    addSimMenuOptionIfNeeded(getCurrentSimIndex());
+    updateStatsLink("simStats");
+  }
+
+  map.addLayer(wmsLayer);
+      }
+    });
+  }
+
+  function processActionList(actionList) {
+    actionList.forEach(val => {
+      if (val.type === "marker") {
+        markerCoordinates = ol.proj.fromLonLat(val.geometry.coordinates);
+        addMarkerCatalogEntry(markerCoordinates);
+
+        magnitudeValue = $("#mag").val();
+        addMagnitudeCatalogEntry(magnitudeValue);
+      }
+      if (val.type === "load-layer") {
+        handleLayerAction(val.source);
+      }
+    });
+  }
+
+  // TODO: job is for EQ, sim_id is for floods; you don't need both
+  // Change mapserver so one is eliminated
+  function makeWmsSource(source) {
+    const wmsSource = new ol.source.ImageWMS({
+      url: source.service,
+      params: {
+        LAYERS: source.name,
+        job: source.simId,
+        sim_id: source.simId,
+        STYLES: source.styles
+      },
+      serverType: source.serverType,
+      crossOrigin: "anonymous"
+    });
+    return wmsSource;
+  }
+
+  function makeWmsLayer(wmsSource) {
+    const wmsLayer = new ol.layer.Image({
+      source: wmsSource,
+      opacity: 0.6,
+      zIndex: 3,
+      visible: false
+    });
+    return wmsLayer;
+  }
+
+  function createLayerCatalogEntry(layerCatalogInfo) {
+    if (typeof catalog.simulations[getLatestSim()].layers === "undefined") {
+      catalog.simulations[getLatestSim()].layers = [];
+    }
+    catalog.simulations[getLatestSim()].layers.push(layerCatalogInfo);
+  }
+
+  function loadPageActions(actions) {
+    // debugger;
+    const keys = Object.keys(actions);
+    const values = Object.values(actions);
+
+    for (let i = 0; i <= keys.length - 1; i += 1) {
+      if (values[i].type === "load-page") {
+        const statsURL = values[i].link;
+        catalog.simulations[getLatestSim()].stats = statsURL;
+        updateStatsLink("#simStats");
+        // populateResultSelectMenu();
+
+        (function ($) {
+          const origAppend = $.fn.append;
+          $.fn.append = function () {
+            return origAppend.apply(this, arguments).trigger("append");
+          };
+        })(jQuery);
+        break;
+      }
+    }
+  }
+
+
+
+  async function displaySimCompleteModal() {
+    map.removeOverlay(catalog.rings);
+    catalog.rings = null;
+
+    const simCompHeaderText = `<div class="title">${
+      "{{ _("Simulation Complete") }}"
+  } </div > `;
+    const simCompModalButtons = [
+      {
+        class: "btn btn-dark",
+        innerText: "{{ _("Close") }}",
+        id: "closeButton"
+      }
+    ];
+
+    let simCompBodyText = getConfig().simComplete[getLanguage()].body;
+
+    const simCompModalProperties = new ModalProperties(
+      simCompHeaderText,
+      simCompBodyText,
+      simCompModalButtons,
+      null,
+      'd-flex justify-content-start'
+    );
+    setModalHeader(simCompModalProperties.headerText);
+    setModalId("simComplete");
+    setModalBody(simCompModalProperties.bodyText);
+    deleteLastButtons();
+    createButtons(simCompModalProperties.buttons, simCompModalProperties.modal_footer_classes);
+    $(".modal-dialog").removeAttr("id");
+    showModal();
+    updateStatsLink("#reportLink");
+    removeModalBackdrop();
+
+    $("#simComplete").one("hidden.bs.modal", e => {
+      $(".progress-bar").text("0%");
+      $("#progress-bar").hide();
+      setCursor("crosshair");
+    });
+  }
+
+  function getLastLayerIndex() {
+    return catalog.status.lastLayerIndex;
+  }
+
+  function getLastSimIndex() {
+    return catalog.status.lastSimIndex;
+  }
+
+  function turnOnLayerWithLegend() {
+    currentOlLayer = getOlLayer(getCurrentSimIndex(), getCurrentLayerIndex());
+    currentOlLayer.setVisible(true);
+    legendUrl = getCurrentLayer().legendURL;
+    layer_title =
+      catalog.simulations[getCurrentSimIndex()].layers[getCurrentLayerIndex()]
+        .layerTitle;
+    setLegendImage(legendUrl, layer_title);
+  }
+
+  function turnOffLayerAlreadyPresentOnMap() {
+    const layerAlreadyPresentOnMap = Boolean(getLastLayerIndex() !== "none");
+    if (layerAlreadyPresentOnMap) {
+      olLayer = getOlLayer(getLastSimIndex(), getLastLayerIndex());
+      olLayer.setVisible(false);
+    }
+  }
+
+  function changeContextMenu() {
+    contextmenu.clear();
+    contextmenu.extend(simStatsContextMenu);
+    contextmenu.extend(contextmenu.getDefaultItems());
+    $("#tractMode").removeClass("disabled");
+  }
+
+  function updateLastIndex() {
+    catalog.status.lastSimIndex = getCurrentSimIndex();
+    catalog.status.lastLayerIndex = getCurrentLayerIndex();
+  }
+
+  function createLegendElement() {
+    $("#element").css("visibility", "visible");
+    const legend_title = document.createElement("div");
+    legend_title.id = "legend_title";
+    element.appendChild(legend_title);
+
+    const legend_div = document.createElement("div");
+    legend_div.id = "legend_div";
+    element.appendChild(legend_div);
+
+    const legend = document.createElement("IMG");
+    legend.id = "legend";
+    legend.className = "img-fluid legend";
+    legend_div.appendChild(legend);
+  }
+
+  function setLegendImage(legendUrl, layer_title = "") {
+    legend = document.getElementById("legend");
+    document.getElementById("legend_title").innerHTML = layer_title;
+    legend.setAttribute("src", legendUrl);
+  }
+
+  function getOlLayer(simIndex, layerIndex) {
+    layer = catalog.simulations[simIndex].layers[layerIndex].olLayer;
+    return layer;
+  }
+
+  function turnOnBaseLyr(action) {
+    $.each(getApiBaseLayers(), i => {
+      if (getApiBaseLayers()[i].makeVis === action) {
+        const { id } = getApiBaseLayers()[i];
+
+        $.each(getCatalogBaseLayers(), j => {
+          if (getCatalogBaseLayers()[j].get("id") === id) {
+            getCatalogBaseLayers()[j].setVisible(true);
+          }
+        });
+      }
+    });
+  }
+
+  function checkIfSimInMenu() {
+    const simTitle = getCurrentSim().title;
+    let notFound = true;
+    $("#selectSim > option").each(function() {
+      matchingTitles = Boolean(this.text.valueOf() === simTitle.valueOf());
+      if (matchingTitles) {
+        notFound = false;
+        return false;
+      }
+    });
+    return notFound;
+  }
+
+  function addSimMenuOptionIfNeeded() {
+    const simNotInMenu = checkIfSimInMenu();
+    if (simNotInMenu) {
+      $("#selectSim").append(
+        $("<option>", {
+          value: getCurrentSimIndex(),
+          text: getCurrentSim().title,
+          selected: "selected"
+        })
+      );
+    }
+  }
+
+  function populateResultSelectMenu() {
+    const layerList = getCurrentSim().layers;
+
+    $("#layerList").empty();
+
+    $.each(layerList, val => {
+      const layerTitle = getCurrentSim().layers[val].layerTitle;
+      $("#layerList").append(
+        `<a class='lays dropdown-item' index=${ val } href='#'> ${ layerTitle }</a>`
+      );
+    });
+    $(":first-child", $("#layerList")).addClass("active");
+  }
+
+  function updateStatsLink(selector) {
+    const currentStatsUrl = getCurrentSim().stats;
+    if (currentStatsUrl !== "undefined") {
+      $(selector).attr("href", currentStatsUrl);
+      // $('#simStats').attr('href', currentStatsUrl);
+      // $('#reportLink').attr('href', currentStatsUrl);
+    }
+  }
+
+  function placeMarker(coordinates = getMarkerCoordinates()) {
+    const markerElementDoesNotExist = Boolean(catalog.marker == null);
+    if (markerElementDoesNotExist) {
+      createMarkerElement();
+    }
+    catalog.marker.setPosition(coordinates);
+  }
+
+  function getMarkerCoordinates() {
+    const wasAPreviousSim = Boolean(typeof getCurrentSim() !== "undefined");
+    let position;
+    if (wasAPreviousSim) {
+      position = getCurrentSim().markerPos;
+    }
+    return position;
+  }
+
+  function createMarkerElement() {
+    $('<div id="marker"></div>').appendTo("body");
+
+    const marker = new ol.Overlay({
+      positioning: "center-center",
+      position: null,
+      element: document.getElementById("marker"),
+      stopEvent: false
+    });
+    map.addOverlay(marker);
+    catalog.marker = marker;
+  }
+
+  function removeActiveState(selector) {
+    $(selector).removeClass("active");
+  }
+
+  function addActiveState(selector) {
+    $(selector).addClass("active");
+  }
+
+  function openStats() {
+    const statsURL = getCurrentSim().stats;
+    window.open(statsURL);
+  }
+
+  function setCursor(cursorChoice) {
+    map.getViewport().style.cursor = cursorChoice;
+  }
+
+  function getCurrentSimIndex() {
+    return catalog.status.currentSimIndex;
+  }
+
+  function getCurrentLayerIndex() {
+    return catalog.status.currentLayerIndex;
+  }
+
+  function getCurrentSim() {
+    return catalog.simulations[getCurrentSimIndex()];
+  }
+
+  function getCurrentLayer() {
+    return getCurrentSim().layers[getCurrentLayerIndex()];
+  }
+
+  function getCensusInfo(evt) {
+    $(".modal").modal("hide");
+    const viewResolution = /** @type {number} */ (view.getResolution());
+    const currentLayer = getCurrentLayerIndex();
+    const currentSim = getCurrentSimIndex();
+    const { wmsSource } = getCurrentLayer();
+    const url = wmsSource.getGetFeatureInfoUrl(
+      evt.coordinate,
+      viewResolution,
+      "EPSG:3857",
+      {
+        INFO_FORMAT: "text/html"
+      }
+    );
+    xCoordinate = evt.coordinate[0];
+    yCoordinate = evt.coordinate[1];
+
+    const censusStatsJSON = `${ getCurrentLayer().query_info_url }&wx=${ xCoordinate }&wy=${ yCoordinate }&srs=3857&lang=${document.getElementById("map").getAttribute("lang")}`;
+    $.getJSON(censusStatsJSON, json => {
+
+      json.featureInfo.geojson = JSON.parse(json.featureInfo.geojson);
+
+
+      let vectorLayer;
+      const tractID = json.featureInfo.context.tract_id;
+      headers = json.featureInfo.headers;
+      rez = json.featureInfo.results;
+
+      $.each(json.featureInfo.results, val => {
+        if (catalog.queriedObject == null) {
+          vectorLayer = new ol.layer.Vector({
+            source: null,
+            visible: false,
+            zIndex: 100,
+            style: new ol.style.Style({
+              stroke: new ol.style.Stroke({
+                color: "red",
+                width: 3
+              })
+            })
+          });
+          catalog.queriedObject = vectorLayer;
+          map.addLayer(vectorLayer);
+        }
+
+        const geojsonObject = {
+          type: "FeatureCollection",
+          crs: {
+            type: "name",
+            properties: {
+              name: "EPSG:4326"
+            }
+          },
+          features: [
+            {
+              type: "Feature",
+              geometry: {
+                type: "MultiPolygon",
+                coordinates: json.featureInfo.geojson.coordinates
+              }
+            }
+          ]
+        };
+
+        const format = new ol.format.GeoJSON({
+          featureProjection: "EPSG:3857"
+        });
+
+          const vectorSource = new ol.source.Vector({
+            features: format.readFeatures(geojsonObject)
+          });
+          catalog.queriedObject.setSource(vectorSource);
+      });
+
+      if ($(window).width() > 800) {
+        if (sideOfWindowClickedOn === "right") {
+          $(".modal-dialog").attr("id", "leftSide");
+        } else {
+          $(".modal-dialog").attr("id", "rightSide");
+        }
+      }
+      $(".modal").removeClass("fade");
+      let modal_content = ''
+      for (i=0; i<headers.length; i++){
+        header_id = headers[i]['id'];
+        table_rows = ""
+        for (j=0; j<rez.length; j++) {
+
+          if(rez[j]['header']==header_id) {
+            let table_row = `
+              <tr>
+                <td>${rez[j]['label']}</td>
+                <td>${rez[j]['unitBefore']}${rez[j]['value']}${rez[j]['unitAfter']}</td>
+              </tr>
+            `;
+            table_rows = table_rows.concat(table_row);
+          }
+        }
+        header_full = `<button class="collapsible"> ${headers[i]['name']} </button><div class="header-content"><table id="${header_id}" style="width:100%">${table_rows}</table></div>`;
+        modal_content = modal_content.concat(header_full);
+      };
+
+
+      let statsModalTitle;
+      if(document.getElementById("map").getAttribute("lang")=='fr') {
+        statsModalTitle = `<div class='title'>Bloc ${tractID} statistiques</div>`
+      } else {
+        statsModalTitle = `<div class='title'>Block ${tractID} Statistics</div>`
+      }
+
+
+      const statsModalButtons = [
+        {
+          class: "btn btn-dark",
+          innerText: "{{ _("Close") }}",
+          id: "closeButton"
+        }
+      ];
+      const statsModalProperties = new ModalProperties(
+        statsModalTitle,
+        modal_content,
+        statsModalButtons,
+        null,
+        'd-flex justify-content-start'
+      );
+      catalog.queriedObject.setVisible(true);
+      setModalHeader(statsModalProperties.headerText);
+      setModalBody(statsModalProperties.bodyText);
+      deleteLastButtons();
+      createButtons(statsModalProperties.buttons, statsModalProperties.modal_footer_classes);
+      showModal();
+      removeModalBackdrop();
+
+      let coll = document.getElementsByClassName("collapsible");
+      for (let i = 0; i < coll.length; i++) {
+        coll[i].addEventListener("click", function() {
+          make_active = true;
+          if (this.classList.contains('active')) {
+            make_active = false;
+          }
+          // First close all the headers
+          for (let j=0; j<coll.length; j++){
+            coll[j].classList.remove("active")
+            var content1 = coll[j].nextElementSibling;
+            if (content1.style.display == "block") {
+              content1.style.display = "none";
+              }
+          }
+          if (make_active) {
+            // For the clicked header, toggle its state
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
+            if (content.style.display === "block") {
+              content.style.display = "none";
+            } else {
+              content.style.display = "block";
+            }
+          }
+
+
+
+        });
+      }
+
+      $(".modal").one("hidden.bs.modal", () => {
+        catalog.queriedObject.setVisible(false);
+      });
+    });
+  }
+
+  function addTooltips() {
+    $(() => {
+      $('[data-toggle="tooltip"]').tooltip();
+    });
+    $("#changeLayer, #modesPic, #simStats").tooltip();
+  }
+
+  function tractModeIsOff() {
+    if ($("#tractMode").hasClass("active")) {
+      return false;
+    }
+    return true;
+  }
+
+  function hideTooltip(identifier) {
+    $(identifier).tooltip("hide");
+  }
+
+  let simStatsContextMenu = [
+    {
+      text: "{{ _("New simulation") }}",
+      classname: "", // add some CSS rules
+      callback: query_and_form
+    },
+    {
+      text: "{{ _("Current simulation statistics") }}",
+      classname: "",
+      callback: openStats
+    },
+    {
+      text: "{{ _("Census tract statistics") }}",
+      classname: "",
+      callback: getCensusInfo
+    }
+  ];
+
+  function createPulsatingCircle(coordinates) {
+    const element = document.createElement("div");
+    element.setAttribute("class", "pulsate");
+    return new ol.Overlay({
+      element,
+      position: coordinates,
+      positioning: "center-center",
+      offset: [1, 1]
+    });
+  }
+
+  function addAnimation(coordinates) {
+    const overlay = createPulsatingCircle(coordinates);
+    catalog.rings = overlay;
+    map.addOverlay(catalog.rings);
+  }
+
+  function setModalId(id) {
+    $(".modal").attr("id", id);
+  }
+
+  function setModalHeader(headerText) {
+    $(".modal-header").html(headerText);
+  }
+
+  function setModalBody(bodyText) {
+    $(".modal-body").html(bodyText);
+  }
+
+
+  function deleteLastButtons() {
+    $(".modal-footer-container").empty();
+  }
+/*
+  <div class="modal-footer">
+    <div class="container col-md-12">
+        <div class="row">
+          <div class="col-md-12">
+
+          </div>
+        </div>
+          <div class="row">
+            <div class="col-md-12">
+              1st col 3
+          </div>
+        </div>
+      </div>
+  </div>
+*/
+  function createButtons(buttons, modal_footer_classes=null) {
+    // Empty all classes, add back modal-footer class, and anything else passed
+    $(".modal-footer").removeClass().addClass('modal-footer').addClass(modal_footer_classes);
+    for (let i = 0; i < buttons.length; i++) {
+      $(".modal-footer-container").append(
+        `<div class="row">
+            <div class="col-md-12">
+                <button type="button" id="${buttons[i].id}" class="${buttons[i].class}" data-dismiss="modal">${buttons[i].innerText}</button>
+            </div>
+        </div>`
+      );
+    }
+  }
+
+  function showModal() {
+    $(".modal").modal("show");
+  }
+
+  // For the dropdown menus to function correctly
+  $("#selectSim").click(e => {
+    e.stopPropagation();
+  });
+  $("#simStats").click(e => {
+    e.stopPropagation();
+  });
+
+});
+
+</script>
+
+{% endblock %}

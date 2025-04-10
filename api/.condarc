@@ -1,0 +1,5 @@
+ssl_verify: ssl-workaround.crt
+channel_priority: strict
+channels:
+  - conda-forge
+  - defaults

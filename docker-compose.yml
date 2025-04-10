@@ -1,0 +1,52 @@
+version: "3"
+services:
+  # nginx:
+  #   build:
+  #     context: ./nginx
+  #     dockerfile: Dockerfile
+  #   restart: always
+  #   ports: ["<host-port>:80"]
+  #   volumes: ['./nginx/cache:/etc/nginx/cache', './nginx/error.log:/etc/nginx/error_log.log']
+  #   env_file:
+  #   # - prod_nick_pc.env
+  #   - staging_nick_pc.env
+  web:
+    # image: er2_web
+    build: ./web
+    restart: always
+    ports: ["<host-port>:<host-port>"]
+    depends_on:
+      - api
+    # volumes: ['./web/app:/home/er2/app', './web/er2.sqlite:/home/er2/er2.sqlite']
+    volumes: ['./web/er2.sqlite:/home/er2/er2.sqlite']
+    env_file:
+      - development.env
+    # - staging_nick_pc.env
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    # image: er2_api:0.2
+    restart: always
+    ports:
+     - "<host-port>:<host-port>"
+    depends_on:
+      - redis
+    # volumes: ['./api:/api']
+    env_file:
+      - development.env
+      # - staging_nick_pc.env
+  worker:
+    build:
+      context: celery-queue
+      dockerfile: Dockerfile
+    # image: er2_worker
+    volumes: ['./celery-queue/Validation.ipynb:/App/Validation.ipynb']
+    depends_on:
+      - redis
+    env_file:
+      - development.env
+      # - staging_nick_pc.env
+  redis:
+    image: redis
+    command: redis-server --requirepass <pass>

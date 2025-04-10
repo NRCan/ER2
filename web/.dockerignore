@@ -1,0 +1,9 @@
+venv
+readme_imgs
+*.pyc
+.git
+# pip.conf
+# ssl-workaround.crt
+.env
+.flaskenv
+database_edit.py
